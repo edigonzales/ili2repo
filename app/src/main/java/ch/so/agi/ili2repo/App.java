@@ -5,9 +5,7 @@ import java.util.concurrent.Callable;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Help;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Help.Ansi;
 
 @Command(
         name = "ili2repo",
