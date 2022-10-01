@@ -1,0 +1,59 @@
+plugins {
+    id 'application'
+    id 'org.graalvm.buildtools.native' version '0.9.14'
+}
+
+apply from: "$rootDir/gradle/versioning.gradle"
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+compileJava {
+    options.compilerArgs.addAll(['--release', '17'])
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+
+    //implementation 'com.google.guava:guava:31.0.1-jre'
+    
+    implementation 'info.picocli:picocli:4.6.3'
+    implementation 'info.picocli:picocli-codegen:4.6.3'
+    annotationProcessor 'info.picocli:picocli-codegen:4.6.3'
+}
+
+application {
+    mainClass = 'ch.so.agi.ili2repo.App'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+run {
+    args = ["--help"]
+}
+
+graalvmNative {
+    binaries {
+        main {
+            imageName = 'ili2repo'
+            mainClass = 'ch.so.agi.ili2repo.App' 
+            debug = true 
+            verbose = true 
+            fallback = false 
+            // Advanced options
+            //buildArgs.add('-H:Extra') 
+            //jvmArgs.add("-Djava.awt.headless=false")
+            /*
+            agent {
+                enabled = true 
+            }
+            */
+        }
+    }
+}
