@@ -24,7 +24,7 @@ import picocli.CommandLine.Help.Ansi;
 public class App implements Callable<Integer> {
 
     @Option(names = { "-d", "--directory" }, required = true, paramLabel = "MODELDIR", description = "The directory containing the INTERLIS models.")
-    File archive;
+    File modeldir;
 
     @Override
     public Integer call() throws Exception { // your business logic goes here...
@@ -34,7 +34,6 @@ public class App implements Callable<Integer> {
     
     public static void main(String... args) {
         int exitCode = new CommandLine(new App())
-                .setColorScheme(Help.defaultColorScheme(Ansi.AUTO))
                 .execute(args);
         System.exit(exitCode);
     }
