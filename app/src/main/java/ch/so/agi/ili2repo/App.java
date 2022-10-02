@@ -22,10 +22,14 @@ import picocli.CommandLine.Option;
 public class App implements Callable<Integer> {
 
     @Option(names = { "-d", "--directory" }, required = true, paramLabel = "MODELDIR", description = "The directory containing the INTERLIS models.")
-    File modeldir;
+    File modelsDir;
 
     @Override
     public Integer call() throws Exception { // your business logic goes here...
+        
+        var failed = new ListModels().listModels(modelsDir);
+        
+        
         System.out.println("Hallo Welt.");
         return 0;
     }

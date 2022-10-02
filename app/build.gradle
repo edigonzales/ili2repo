@@ -14,16 +14,19 @@ compileJava {
 
 repositories {
     mavenCentral()
+    maven { url "https://jars.interlis.ch" }
 }
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
 
-    //implementation 'com.google.guava:guava:31.0.1-jre'
-    
     implementation 'info.picocli:picocli:4.6.3'
     implementation 'info.picocli:picocli-codegen:4.6.3'
     annotationProcessor 'info.picocli:picocli-codegen:4.6.3'
+    
+    implementation 'ch.interlis:iox-ili:1.21.12'
+    implementation 'ch.interlis:ili2c-core:5.2.7'
+    implementation 'ch.interlis:ili2c-tool:5.2.7'
 }
 
 application {
@@ -35,7 +38,8 @@ tasks.named('test') {
 }
 
 run {
-    args = ["--help"]
+    //args = ["--help"]
+    args = ["--directory=/Users/stefan/tmp/ili2repo/models/"]
 }
 
 graalvmNative {
