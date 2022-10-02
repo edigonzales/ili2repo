@@ -31,7 +31,7 @@ public class App implements Callable<Integer> {
         
         
         System.out.println("Hallo Welt.");
-        return 0;
+        return failed ? 1 : 0;
     }
     
     public static void main(String... args) {
