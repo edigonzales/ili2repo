@@ -95,7 +95,6 @@ public class ListModels {
 
                 // Mehrere Modelle in einer ili-Datei.
                 for (Model lastModel : td.getModelsFromLastFile()) {
-                    System.out.println("lastModel: "+ lastModel.getName());
                     Iom_jObject iomObj = new Iom_jObject(ILI_CLASS, String.valueOf(i));
                     iomObj.setattrvalue("Name", lastModel.getName());
 
@@ -105,6 +104,8 @@ public class ListModels {
                         iomObj.setattrvalue("SchemaLanguage", "ili2_2");
                     } else if (lastModel.getIliVersion().equalsIgnoreCase("2.3")) {
                         iomObj.setattrvalue("SchemaLanguage", "ili2_3");
+                    } else if (lastModel.getIliVersion().equalsIgnoreCase("2.4")) {
+                        iomObj.setattrvalue("SchemaLanguage", "ili2_4");
                     }
                     
                     String filePath = file.getAbsoluteFile().getParent().replace(modelsDir.getAbsolutePath()+FileSystems.getDefault().getSeparator(), "");
