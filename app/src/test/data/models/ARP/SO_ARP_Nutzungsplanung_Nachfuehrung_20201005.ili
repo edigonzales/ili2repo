@@ -1,0 +1,690 @@
+INTERLIS 2.3;
+
+/** -----------------------------------------------------------------------------------------------------------------------------
+ *  Version    | wer | Änderung 
+ * -----------------------------------------------------------------------------------------------------------------------------
+ *  2020-10-05 | al  | Auf der Basis des Modell SO_Nutzungsplanung_20171118 wird ein
+ *             |     | Nachführungsmodell erstellt. Änderungen:
+ *             |     | - Grundnutzung neu Surface 
+ *             |     | - neue Werte bei Rechtsstatus
+ *             |     | - Name_Nummer heisst neu "Geschaefts_Nummer"
+ *             |     | - neues Attribut "publiziertBis"
+ *             |     | - neues Topic Lärmempfindlichkeitsstufen
+ *             |     | - Typ_Kanton aktualisiert (nur die vorhanden, die in diesem Modell nachgeführt werden)
+ *             |     | - Nutzungsplanung_Beschriftung und Erschliessung_Beschriftung entfernt
+ *             |     | - Anpassung der MANDATORY Attribute. Zum Zeitpunkt der Datenerfassung sind die Werte noch nicht bekannt.
+ *             |     | - Attribute neu MANDATORY: Bei CLASS Dokument: Rechtsvorschrift, Kanton, OffiziellerTitel  
+ * =============================================================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://sogis.github.io/nplso-arbeitshilfe/index.html
+!!@ IDGeoIV="73, 145, 157, 159"
+MODEL SO_ARP_Nutzungsplanung_Nachfuehrung_20201005 (de)
+AT "http://www.geo.so.ch"
+VERSION "2020-10-05"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Bemerkungen_Typ = MTEXT*240;
+
+    Einzelflaeche
+    EXTENDS GeometryCHLV95_V1.Surface = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+
+    Gebietseinteilung
+    EXTENDS GeometryCHLV95_V1.Area = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+
+    Rechtsstatus = (
+      /** Ist in Kraft
+       */
+      inKraft,
+      /** Das Objekt ist in einem Verfahren zur Änderung und entfaltet mit der öffentlichen Auflage eine rechtliche Vorwirkung.
+       */
+      AenderungMitVorwirkung,
+      /** Das Objekt ist in einem Verfahren zur Änderung, entfaltet aber noch keine Vorwirkung (Zeitpunkt vor der öffentlichen Auflage).
+       */
+      AenderungOhneVorwirkung
+    );
+
+    Verbindlichkeit = (
+      /** Im Nachführungsmodell verbleiben nur die Objekte mit Verbindlichkeit=Nutzungsplanfestlegung.
+       */
+      Nutzungsplanfestlegung,
+      /** Eigentümerverbindlich, in einem anderen Verfahren festgelegt. Nur kommunale orientierende Elemente werden in diesem Modell geführt.
+       */
+      orientierend,
+      /** Nicht eigentümerverbindlich, sie umfassen Qualitäten, Standards und dergleichen, die zu berücksichtigen sind. Nur kommunale wegleitende Elemente werden in diesem Modell geführt.
+       */
+      wegleitend,
+      /** Nicht eigentümerverbindlich, Informationsinhalte. Nur kommunale hinweisende Elemente werden in diesem Modell geführt.
+       */
+      hinweisend
+    );
+
+  TOPIC Rechtsvorschriften =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Dokument =
+      /** leer lassen
+       */
+      DokumentID : TEXT*16;
+      /** Dokumentart z.B. Regierungsratsbeschluss, Zonenreglement, Sonderbauvorschriften, Erschliessungsplan, Gestaltungsplan.
+       */
+      Titel : TEXT*80;
+      /** Vollständiger Titel des Dokuments, wenn der OffiziellerTitel gleich lautet wie der Titel, so ist die Planbezeichnung aus der Planliste zu übernehmen.
+       */
+      OffiziellerTitel : MANDATORY TEXT*240;
+      /** Abkürzung der Dokumentart RRB, ZR, SBV
+       */
+      Abkuerzung : TEXT*10;
+      /** Eindeutiger Identifikator gemäss Planregister. Die ID setzt sich folgendermassen zusammen:
+       * Sonderbauvorschriften: Gemeindennummer “-” Plannummer nach Planregister “-” S (für Sonderbauvorschriften)z.B. 109-31-S
+       * Reglemente: Gemeindenummer “-” und Kürzel Reglementart (ZR Zonenereglement, BR Baureglement und BZR Bau- und Zonenreglement z.B. 109-BR
+       * Gestaltungsplan: Gemeindennummer “-” Plannummer nach Planregister “-” P (für Plan) z.B. 109-31-P
+       * Bei RRB ist die RRB Nr. aufzuführen (YYYY/RRB Nr.) z.B. 2001/1585
+       */
+      OffizielleNr : TEXT*20;
+      /** Abkürzung Kanton
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Gemeindenummer vom schweizerischen Bundesamt für Statistik (BFS-Nr.)
+       */
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Rechtsstatus des Dokuments.
+       */
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Relative Internetadresse des Dokuments auf Planregister. D.h. stabiler Teil, ohne https://geoweb.so.ch/zonenplaene/Zonenplaene_pdf/ z.B. 109-Wissen/Entscheide/109-31-E.pdf
+       */
+      TextImWeb : URI;
+      /** Erläuternder Text oder Bemerkungen zum Dokument.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      Rechtsvorschrift : MANDATORY BOOLEAN;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Dokument;
+
+  END Rechtsvorschriften;
+
+  TOPIC Nutzungsplanung =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften;
+
+    DOMAIN
+
+      NP_Typ_Kanton_Grundnutzung = (
+        N110_Wohnzone_1_G,
+        N111_Wohnzone_2_G,
+        N112_Wohnzone_3_G,
+        N113_Wohnzone_4_G,
+        N114_Wohnzone_5_G,
+        N115_Wohnzone_6_G,
+        N116_Wohnzone_7_G_und_groesser,
+        N117_Zone_fuer_Terrassenhaeuser_Terrassensiedlung,
+        N120_Gewerbezone_ohne_Wohnen,
+        N121_Industriezone,
+        N122_Arbeitszone,
+        N130_Gewerbezone_mit_Wohnen_Mischzone,
+        N131_Gewerbezone_mit_Wohnen_Mischzone_2_G,
+        N132_Gewerbezone_mit_Wohnen_Mischzone_3_G,
+        N133_Gewerbezone_mit_Wohnen_Mischzone_4_G_und_groesser,
+        N134_Zone_fuer_publikumsintensive_Anlagen,
+        N140_Kernzone,
+        N141_Zentrumszone,
+        N142_Erhaltungszone,
+        N150_Zone_fuer_oeffentliche_Bauten,
+        N151_Zone_fuer_oeffentliche_Anlagen,
+        N160_Gruen_und_Freihaltezone_innerhalb_Bauzone,
+        N161_kommunale_Uferschutzzone_innerhalb_Bauzone,
+        N162_Landwirtschaftliche_Kernzone,
+        N163_Weilerzone,
+        N169_weitere_eingeschraenkte_Bauzonen,
+        N170_Zone_fuer_Freizeit_und_Erholung,
+        N180_Verkehrszone_Strasse,
+        N181_Verkehrszone_Bahnareal,
+        N182_Verkehrszone_Flugplatzareal,
+        N189_weitere_Verkehrszonen,
+        N190_Spezialzone,
+        N210_Landwirtschaftszone,
+        N220_Spezielle_Landwirtschaftszone,
+        N230_Rebbauzone,
+        N290_weitere_Landwirtschaftszonen,
+        N310_kommunale_Naturschutzzone,
+        N311_Waldrandschutzzone,
+        N319_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften,
+        N320_Gewaesser,
+        N329_weitere_Zonen_fuer_Gewaesser_und_ihre_Ufer,
+        N390_weitere_Schutzzonen_ausserhalb_Bauzonen,
+        N420_Verkehrsflaeche_Strasse,
+        N421_Verkehrsflaeche_Bahnareal,
+        N422_Verkehrsflaeche_Flugplatzareal,
+        N429_weitere_Verkehrsflaechen,
+        N430_Reservezone_Wohnzone_Mischzone_Kernzone_Zentrumszone,
+        N431_Reservezone_Arbeiten,
+        N432_Reservezone_OeBA,
+        N439_Reservezone,
+        N440_Wald,
+        N490_Golfzone,
+        N491_Abbauzone,
+        N492_Deponiezone,
+        N499_weitere_Bauzonen_nach_Art18_RPG_ausserhalb_Bauzonen
+      );
+
+    CLASS Typ (ABSTRACT) =
+      /** Name der Grundnutzung, überlagernden Objekts oder Erschliessung. Wird von der Gemeinde definiert.
+       */
+      Bezeichnung : MANDATORY TEXT*80;
+      /** Abkürzung der Bezeichung. Kann von der Gemeinde vergeben werden. Falls keine Abkürzung vorhanden ist bleit das Feld leer.
+       */
+      Abkuerzung : TEXT*12;
+      Verbindlichkeit : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Verbindlichkeit;
+      /** Erläuternder Text zum Typ
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+    END Typ;
+
+    DOMAIN
+
+      NP_Typ_Kanton_Ueberlagernd_Flaeche = (
+        N510_ueberlagernde_Ortsbildschutzzone,
+        N523_Landschaftsschutzzone,
+        N526_kantonale_Landwirtschafts_und_Schutzzone_Witi,
+        N528_kommunale_Uferschutzzone_ausserhalb_Bauzonen,
+        N529_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften,
+        N590_Hofstattzone_Freihaltezone,
+        N591_Bauliche_Einschraenkungen,
+        N592_Hecken_Feldgehoelz_Ufergehoelz,
+        N599_weitere_ueberlagernde_Nutzungszonen,
+        N610_Perimeter_kantonaler_Nutzungsplan,
+        N611_Perimeter_kommunaler_Gestaltungsplan,
+        N620_Perimeter_Gestaltungsplanpflicht,
+        N691_kommunales_Vorranggebiet_Natur_und_Landschaft,
+        N692_Planungszone,
+        N699_weitere_flaechenbezogene_Festlegungen_NP,
+        N813_Naturobjekt,
+        N821_kommunal_geschuetztes_Kulturobjekt,
+        N822_schuetzenswertes_Kulturobjekt,
+        N823_erhaltenswertes_Kulturobjekt
+      );
+
+    CLASS Typ_Grundnutzung
+    EXTENDS Typ =
+      Typ_Kt : MANDATORY NP_Typ_Kanton_Grundnutzung;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+      /** Zahlenwert nach Zonenreglement der Gemeinde (0.05 = 5%).
+       */
+      Nutzungsziffer : 0.00 .. 9.00;
+      Nutzungsziffer_Art : (
+        /** Bauvolumen über massgebendem Terrain / anrechenbare Grundstücksfläche (§37ter PBG)
+         */
+        Baumassenziffer,
+        /** Summe aller Geschossflächen / anrechenbare Grundstücksfläche (§37bis PBG)
+         */
+        Geschossflaechen,
+        /** Anrechenbare Gebäudefläche / anrechenbare Grundstücksfläche (§35 PBG)
+         */
+        Ueberbauungsziffer,
+        /** Anrechenbare Bruttogeschossfläche / anrechenbare Grundstücksfläche ((§37 PBG, wurde gestrichen)
+         */
+        Ausnuetzungsziffer
+      );
+      /** Maximal zulässige Anzahl Geschosse
+       */
+      Geschosszahl : 0 .. 50;
+    END Typ_Grundnutzung;
+
+    DOMAIN
+
+      NP_Typ_Kanton_Ueberlagernd_Linie = (
+        N799_weitere_linienbezogene_Festlegungen_NP
+      );
+
+    CLASS Typ_Ueberlagernd_Flaeche
+    EXTENDS Typ =
+      Typ_Kt : MANDATORY NP_Typ_Kanton_Ueberlagernd_Flaeche;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+    END Typ_Ueberlagernd_Flaeche;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Grundnutzung_Dokument =
+      Typ_Grundnutzung -- {0..*} Typ_Grundnutzung;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Grundnutzung_Dokument;
+
+    DOMAIN
+
+      NP_Typ_Kanton_Ueberlagernd_Punkt = (
+        N810_geschuetzter_Einzelbaum,
+        N811_erhaltenswerter_Einzelbaum,
+        N813_Naturobjekt,
+        N821_kommunal_geschuetztes_Kulturobjekt,
+        N822_schuetzenswertes_Kulturobjekt,
+        N823_erhaltenswertes_Kulturobjekt,
+        N899_weitere_punktbezogene_Festlegungen_NP
+      );
+
+    CLASS Grundnutzung =
+      /** Geometrie als Gebietseinteilung. Überlappungen bei Radien mit einer
+       * Pfeilhöhe <1 mm werden toleriert.
+       */
+      Geometrie : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Einzelflaeche;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu der einzelnen Grundnutzungsgeometrie.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Grundnutzung;
+
+    CLASS Typ_Ueberlagernd_Linie
+    EXTENDS Typ =
+      Typ_Kt : MANDATORY NP_Typ_Kanton_Ueberlagernd_Linie;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+    END Typ_Ueberlagernd_Linie;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Ueberlagernd_Flaeche_Dokument =
+      Typ_Ueberlagernd_Flaeche -- {0..*} Typ_Ueberlagernd_Flaeche;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Ueberlagernd_Flaeche_Dokument;
+
+    CLASS Typ_Ueberlagernd_Punkt
+    EXTENDS Typ =
+      Typ_Kt : MANDATORY NP_Typ_Kanton_Ueberlagernd_Punkt;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+    END Typ_Ueberlagernd_Punkt;
+
+    CLASS Ueberlagernd_Flaeche =
+      /** Fläche, welche die Grundnutzung überlagert.
+       */
+      Geometrie : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Einzelflaeche;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu der einzelnen überlagernden Objekte.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Ueberlagernd_Flaeche;
+
+    /** Ein Typ_Grundnutzung kann mehrere Grundnutzungsgeometrien haben
+     */
+    ASSOCIATION Typ_Grundnutzung_Grundnutzung =
+      Typ_Grundnutzung -<> {1} Typ_Grundnutzung;
+      Grundnutzung -- {0..*} Grundnutzung;
+    END Typ_Grundnutzung_Grundnutzung;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Ueberlagernd_Linie_Dokument =
+      Typ_Ueberlagernd_Linie -- {0..*} Typ_Ueberlagernd_Linie;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Ueberlagernd_Linie_Dokument;
+
+    CLASS Ueberlagernd_Linie =
+      /** Linie, welche die Grundnutzung überlagert.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu der einzelnen überlagernden Objekte.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Ueberlagernd_Linie;
+
+    /** Ein Typ_Ueberlagernd_Flaeche kann mehrere überlagernde Geometrien haben.
+     */
+    ASSOCIATION Typ_Ueberlagernd_Flaeche_Flaeche =
+      Typ_Ueberlagernd_Flaeche -<> {1} Typ_Ueberlagernd_Flaeche;
+      Ueberlagernd_Flaeche -- {0..*} Ueberlagernd_Flaeche;
+    END Typ_Ueberlagernd_Flaeche_Flaeche;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Ueberlagernd_Punkt_Dokument =
+      Typ_Ueberlagernd_Punkt -- {0..*} Typ_Ueberlagernd_Punkt;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Ueberlagernd_Punkt_Dokument;
+
+    CLASS Ueberlagernd_Punkt =
+      /** Punkt, welche die Grundnutzung überlagert.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu der einzelnen überlagernden Objekte.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Ueberlagernd_Punkt;
+
+    /** Ein Typ_Ueberlagernd_Linie kann mehrere überlagernde Geometrien haben.
+     */
+    ASSOCIATION Typ_Ueberlagernd_Linie_Linie =
+      Typ_Ueberlagernd_Linie -<> {1} Typ_Ueberlagernd_Linie;
+      Ueberlagernd_Linie -- {0..*} Ueberlagernd_Linie;
+    END Typ_Ueberlagernd_Linie_Linie;
+
+    /** Ein Typ_Ueberlagernd_Punkt kann mehrere überlagernde Geometrien haben.
+     */
+    ASSOCIATION Typ_Ueberlagernd_Punkt_Punkt =
+      Typ_Ueberlagernd_Punkt -<> {1} Typ_Ueberlagernd_Punkt;
+      Ueberlagernd_Punkt -- {0..*} Ueberlagernd_Punkt;
+    END Typ_Ueberlagernd_Punkt_Punkt;
+
+  END Nutzungsplanung;
+
+  TOPIC Erschliessungsplanung =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften;
+
+    DOMAIN
+
+      EP_Typ_Kanton_Erschliessung_Flaechenobjekt = (
+        E560_Nationalstrasse,
+        E561_Kantonsstrasse,
+        E562_Sammelstrasse_kommunal,
+        E563_Erschliessungsstrasse_kommunal,
+        E564_Flurweg_mit_Erschliessungsfunktion,
+        E565_Flurweg_ohne_Erschliessungsfunktion,
+        E566_private_Erschliessungsstrasse,
+        E567_unklassierte_Strasse,
+        E568_Strassenbankett_Verkehrsinsel,
+        E569_uebrige_Verkehrsflaechen,
+        E570_Gehweg_Trottoir,
+        E571_Fussweg,
+        E572_Radweg,
+        E573_Fuss_und_Radweg,
+        E574_Gruenstreifen_Rabatte,
+        E579_uebrige_Flaechen_Langsamverkehr
+      );
+
+      EP_Typ_Kanton_Erschliessung_Linienobjekt = (
+        E711_Baulinie_Strasse_kantonal,
+        E712_Vorbaulinie_kantonal,
+        E713_Gestaltungsbaulinie_kantonal,
+        E714_Rueckwaertige_Baulinie_kantonal,
+        E715_Baulinie_Infrastruktur_kantonal,
+        E719_weitere_nationale_und_kantonale_Baulinien,
+        E720_Baulinie_Strasse,
+        E721_Vorbaulinie,
+        E722_Gestaltungsbaulinie,
+        E723_Rueckwaertige_Baulinie,
+        E724_Baulinie_Infrastruktur,
+        E725_Waldabstandslinie,
+        E726_Baulinie_Hecke,
+        E727_Baulinie_Gewaesser,
+        E728_Immissionsstreifen,
+        E729_weitere_kommunale_Baulinien,
+        E789_weitere_linienbezogene_Objekte_EP
+      );
+
+      EP_Typ_Kanton_Erschliessung_Punktobjekt = (
+        E889_weitere_punktbezogene_Objekte_EP
+      );
+
+    CLASS Typ_Erschliessung_Linienobjekt
+    EXTENDS SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ =
+      Typ_Kt : MANDATORY EP_Typ_Kanton_Erschliessung_Linienobjekt;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+    END Typ_Erschliessung_Linienobjekt;
+
+    CLASS Typ_Erschliessung_Flaechenobjekt
+    EXTENDS SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ =
+      Typ_Kt : MANDATORY EP_Typ_Kanton_Erschliessung_Flaechenobjekt;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+    END Typ_Erschliessung_Flaechenobjekt;
+
+    CLASS Typ_Erschliessung_Punktobjekt
+    EXTENDS SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ =
+      Typ_Kt : MANDATORY EP_Typ_Kanton_Erschliessung_Punktobjekt;
+      /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
+       */
+      Code_kommunal : MANDATORY TEXT*12;
+    END Typ_Erschliessung_Punktobjekt;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Erschliessung_Linienobjekt_Dokument =
+      Typ_Erschliessung_Linienobjekt -- {0..*} Typ_Erschliessung_Linienobjekt;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Erschliessung_Linienobjekt_Dokument;
+
+    CLASS Erschliessung_Linienobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu den einzelnen Erschliessungsobjekten.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Erschliessung_Linienobjekt;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Erschliessung_Flaechenobjekt_Dokument =
+      Typ_Erschliessung_Flaechenobjekt -- {0..*} Typ_Erschliessung_Flaechenobjekt;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Erschliessung_Flaechenobjekt_Dokument;
+
+    /** Siehe in der Arbeitshilfe
+     */
+    ASSOCIATION Typ_Erschliessung_Punktobjekt_Dokument =
+      Typ_Erschliessung_Punktobjekt -- {0..*} Typ_Erschliessung_Punktobjekt;
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    END Typ_Erschliessung_Punktobjekt_Dokument;
+
+    CLASS Erschliessung_Flaechenobjekt =
+      Geometrie : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Einzelflaeche;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu den einzelnen Erschliessungsobjekten.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Erschliessung_Flaechenobjekt;
+
+    CLASS Erschliessung_Punktobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu den einzelnen Erschliessungsobjekten.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Erschliessung_Punktobjekt;
+
+    /** Typ_Erschliessung_Linienobjekt kann mehrere Erschliessung-Geometrien haben
+     */
+    ASSOCIATION Typ_Erschliessung_Linienobjekt_Linie =
+      Typ_Erschliessung_Linienobjekt -<> {1} Typ_Erschliessung_Linienobjekt;
+      Erschliessung_Linienobjekt -- {0..*} Erschliessung_Linienobjekt;
+    END Typ_Erschliessung_Linienobjekt_Linie;
+
+    /** Typ_Erschliessung_Flaecheobjekt kann mehrere Erschliessung-Geometrien haben.
+     */
+    ASSOCIATION Typ_Erschliessung_Flaechenobjekt_Flaeche =
+      Typ_Erschliessung_Flaechenobjekt -<> {1} Typ_Erschliessung_Flaechenobjekt;
+      Erschliessung_Flaechenobjekt -- {0..*} Erschliessung_Flaechenobjekt;
+    END Typ_Erschliessung_Flaechenobjekt_Flaeche;
+
+    /** Typ_Erschliessung_Punktobjekt kann mehrere Erschliessung-Geometrien haben
+     */
+    ASSOCIATION Typ_Erschliessung_Punktobjekt_Punkt =
+      Typ_Erschliessung_Punktobjekt -<> {1} Typ_Erschliessung_Punktobjekt;
+      Erschliessung_Punktobjekt -- {0..*} Erschliessung_Punktobjekt;
+    END Typ_Erschliessung_Punktobjekt_Punkt;
+
+  END Erschliessungsplanung;
+
+  TOPIC Laermempfindlichkeitsstufen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften,SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung;
+
+    DOMAIN
+
+      Typ_Kanton_Empfindlichkeitsstufe = (
+        N680_Empfindlichkeitsstufe_I,
+        N681_Empfindlichkeitsstufe_II,
+        N682_Empfindlichkeitsstufe_II_aufgestuft,
+        N683_Empfindlichkeitsstufe_III,
+        N684_Empfindlichkeitsstufe_III_aufgestuft,
+        N685_Empfindlichkeitsstufe_IV,
+        N686_keine_Empfindlichkeitsstufe
+      );
+
+    CLASS Empfindlichkeitsstufe =
+      /** Geometrie als Gebietseinteilung. Überlappungen bei Radien mit einer
+       * Pfeilhöhe <1 mm werden toleriert.
+       */
+      Geometrie : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Einzelflaeche;
+      /** SOBAU-NP Nummer bei laufenden Änderungen
+       */
+      Geschaefts_Nummer : TEXT*20;
+      Rechtsstatus : MANDATORY SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsstatus;
+      /** Datum Publikation im Amtsblatt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Bemerkung zu der einzelnen Grundnutzungsgeometrie.
+       */
+      Bemerkungen : SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Bemerkungen_Typ;
+      /** Name der Firma die die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum der Erfassung
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Empfindlichkeitsstufe;
+
+    CLASS Typ_Empfindlichkeitsstufe
+    EXTENDS SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ =
+      Typ_Kt : MANDATORY Typ_Kanton_Empfindlichkeitsstufe;
+    END Typ_Empfindlichkeitsstufe;
+
+    ASSOCIATION Typ_Empfindlichkeitsstufe_Dokument =
+      Dokument (EXTERNAL) -- {0..*} SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+      Typ_Empfindlichkeitsstufen -- {0..*} Typ_Empfindlichkeitsstufe;
+    END Typ_Empfindlichkeitsstufe_Dokument;
+
+    /** Ein Typ_Empfindlichkeitsstufen kann mehrere Geometrien Empfindlichkeitsstufen der haben
+     */
+    ASSOCIATION Typ_Empfindlichkeitsstufe_Empfindlichkeitsstufen =
+      Typ_Empfindlichkeitsstufen -<> {1} Typ_Empfindlichkeitsstufe;
+      Empfindlichkeitsstufen -- {0..*} Empfindlichkeitsstufe;
+    END Typ_Empfindlichkeitsstufe_Empfindlichkeitsstufen;
+
+  END Laermempfindlichkeitsstufen;
+
+END SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.

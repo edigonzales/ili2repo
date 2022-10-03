@@ -27,6 +27,9 @@ dependencies {
     implementation 'ch.interlis:iox-ili:1.21.12'
     implementation 'ch.interlis:ili2c-core:5.2.7'
     implementation 'ch.interlis:ili2c-tool:5.2.7'
+    implementation 'ch.interlis:ilivalidator:1.12.0'
+
+    implementation 'commons-codec:commons-codec:1.15'      
 }
 
 application {

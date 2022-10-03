@@ -9,12 +9,17 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.interlis2.validator.Validator;
 
 import ch.interlis.ili2c.Ili2c;
 import ch.interlis.ili2c.Ili2cException;
@@ -30,6 +35,7 @@ import ch.interlis.iox_j.EndTransferEvent;
 import ch.interlis.iox_j.StartBasketEvent;
 import ch.interlis.iox_j.StartTransferEvent;
 import ch.ehi.basics.logging.EhiLogger;
+import ch.ehi.basics.settings.Settings;
 import ch.interlis.models.ILIREPOSITORY20;
 
 public class ListModels {
@@ -87,8 +93,8 @@ public class ListModels {
             
             // Im zweiten Durchlauf wird die ilimodels.xml-Datei geschrieben.
             int i = 1;
-            for (Path model : models) {
-                File file = model.toFile();
+            for (Path modelPath : models) {
+                File file = modelPath.toFile();
                 EhiLogger.logState(file.getName().toString());
                 
                 var td = getTransferDescriptionFromFileName(file.getAbsolutePath(), repositories);
@@ -111,18 +117,81 @@ public class ListModels {
                     String filePath = file.getAbsoluteFile().getParent().replace(modelsDir.getAbsolutePath()+FileSystems.getDefault().getSeparator(), "");
                     iomObj.setattrvalue("File", filePath + "/" + file.getName());
 
+                    if (lastModel.getModelVersion() == null) {
+                        iomObj.setattrvalue("Version", "1582-01-01");
+                    } else {
+                        iomObj.setattrvalue("Version", lastModel.getModelVersion());
+                    }
+
+                    try {
+                        iomObj.setattrvalue("Issuer", lastModel.getIssuer());
+                    } catch (IllegalArgumentException e) {
+                    }
+
+                    var modelTechnicalContact = lastModel.getMetaValue("technicalContact");
+                    if (modelTechnicalContact != null) {
+                        if (isValidEmail(modelTechnicalContact) && !modelTechnicalContact.startsWith("mailto")) {
+                            iomObj.setattrvalue("technicalContact", "mailto:"+modelTechnicalContact);     
+                        } else {
+                            iomObj.setattrvalue("technicalContact", lastModel.getMetaValue("technicalContact"));     
+                        }
+                    }
+
+                    var furtherInformation = lastModel.getMetaValue("furtherInformation"); 
+                    if (furtherInformation != null && furtherInformation.startsWith("http")) {
+                        iomObj.setattrvalue("furtherInformation", furtherInformation);
+                    }
+
+                    var title = lastModel.getMetaValue("Title");                
+                    if (title != null) {
+                        iomObj.setattrvalue("Title", title);
+                    }
+                    
+                    var shortDescription = lastModel.getMetaValue("shortDescription");
+                    if (shortDescription != null) {
+                        iomObj.setattrvalue("shortDescription", shortDescription);
+                    }
+
+                    // JDK only benötigt trotzdem JAXB wegen "DatatypeConverter.printHexBinary"
+                    try (var is = Files.newInputStream(Paths.get(file.getAbsolutePath()))) {
+                        var md5 = DigestUtils.md5Hex(is);
+                        iomObj.setattrvalue("md5", md5);
+                    }
+
+                    // Importierte Modell                
+                    for (Model model : lastModel.getImporting()) {
+                        Iom_jObject iomObjDependsOnModel = new Iom_jObject(ILI_STRUCT_MODELNAME, null);
+                        
+                        // see https://github.com/claeis/ili2c/issues/75
+                        if (!model.getName().equalsIgnoreCase("INTERLIS")) {
+                            iomObjDependsOnModel.setattrvalue("value",  model.getName());
+                            iomObj.addattrobj("dependsOnModel", iomObjDependsOnModel);
+                        }
+                    }
+
+                    // TODO: translationOf
+                    
                     ioxWriter.write(new ch.interlis.iox_j.ObjectEvent(iomObj));   
                     i++;  
 
                 }                
             }
 
-            
-            
             ioxWriter.write(new EndBasketEvent());
             ioxWriter.write(new EndTransferEvent());
             
             ioxWriter.flush();
+            
+            // Validate ilimodels.xml
+            Settings settings = new Settings();
+            settings.setValue(Validator.SETTING_ILIDIRS, Validator.SETTING_DEFAULT_ILIDIRS);
+            settings.setValue(Validator.SETTING_ALL_OBJECTS_ACCESSIBLE, Validator.TRUE);
+            boolean valid = Validator.runValidation(destFile.toFile().getAbsolutePath(), settings);
+
+            if (!valid) {
+                EhiLogger.logError("ilimodels.xml is not valid");
+                failed = true;
+            }
             
         } catch (FileNotFoundException e) {
             e.printStackTrace(); // TODO: remove
@@ -182,4 +251,15 @@ public class ListModels {
         return td;
     }
 
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\."+
+                "[a-zA-Z0-9_+&*-]+)*@" +
+                "(?:[a-zA-Z0-9-]+\\.)+[a-z" +
+                "A-Z]{2,7}$";
+        Pattern pat = Pattern.compile(emailRegex);
+        if (email == null) {
+            return false;
+        } 
+        return pat.matcher(email).matches();
+    }
 }

@@ -1,0 +1,72 @@
+INTERLIS 2.3;
+CONTRACTED MODEL SO_FunctionsExt
+  AT "mailto:stefan.ziegler@bd.so.ch" VERSION "2019-12-04" =
+    
+    /**
+    * Allgemeine Funktionen
+    */
+    
+    !!@ fn.description = "Prüft mittels Status-Code, ob eine HTTP-Ressource vorhanden ist.
+    !!@ Falls der Status-Code grösser gleich 200 und kleiner gleich 399 sein,
+    !!@ ist der Rückgabewert der Funktion true.";
+    !!@ fn.param = "url Die URL der zu prüfenden HTTP-Ressource.";
+    !!@ fn.param = "prefix Beliebiger URL-Prefix.";
+    !!@ fn.return = "True, falls die Ressource existiert. False, falls die Ressource
+    !!@ nicht existiert.";
+    !!@ fn.since = "2019-01-27";
+    FUNCTION isHttpResource (url: TEXT; prefix: TEXT): BOOLEAN;
+    
+    !!@ fn.description = "Prüft mittels Status-Code, ob eine HTTP-Ressource vorhanden ist.
+    !!@ Falls der Status-Code grösser gleich 200 und kleiner gleich 399 sein,
+    !!@ ist der Rückgabewert der Funktion true.";
+    !!@ fn.param = "Object Attribut mit der zu prüfenden OEREB-MultilingualUrl.";
+    !!@ fn.return = "True, falls die Ressource existiert. False, falls die Ressource
+    !!@ nicht existiert.";
+    !!@ fn.since = "2020-06-05";
+    FUNCTION isHttpResourceFromOerebMultilingualUri (Object: ANYSTRUCTURE): BOOLEAN;
+    
+    /**
+    * Geometrie-Funktionen
+    */
+    !!@ fn.description = "Ermittelt die Fläche einer polygonalen Geometrie.";
+    !!@ fn.param = "geometry Geometrieattribut.";
+    !!@ fn.return = "Fläche der Geometrie";
+    !!@ fn.since = "2019-12-04";
+    !!@ fn.dependencies = "ili2db";
+    FUNCTION area (geometry: OBJECTS OF ANYCLASS): NUMERIC;
+    
+    !!@ fn.description = "Ermittelt die Länge einer Linien-Geometrie";
+    !!@ fn.param = "geometry Geometrieattribut.";
+    !!@ fn.return = "Länge der Geometrie";
+    !!@ fn.since = "2021-02-27";
+    !!@ fn.dependencies = "ili2db";
+    FUNCTION length (geometry: OBJECTS OF ANYCLASS): NUMERIC;
+    
+    !!@ fn.description = "Prüft, ob eine polygonale Geometrie eine Ring-Self-Intersection enthält.
+    !!@ Temporär bis gefixed in ilivalidator.";
+    !!@ fn.param = "geometry Geometrieattribut.";
+    !!@ fn.return = "True, falls eine Ring-Self-Intersection gefunden werden. False, falls keine gefunden werden.";
+    !!@ fn.since = "2021-03-17";
+    FUNCTION hasRingSelfIntersection (geometry: OBJECTS OF ANYCLASS): BOOLEAN;
+
+    !!@ fn.description = "Prüft, ob eine Polyline genügend Punkte aufweist (>= 2)."
+    !!@ fn.param = "geometry Geometrieattribut.";
+    !!@ fn.return = "True, falls die Polyline zu wenig Punkte aufweist. False, falls die Polyline genügend Punkte aufweist.";
+    !!@ fn.since = "2021-03-19";
+    FUNCTION tooFewPointsPolyline (geometry: OBJECTS OF ANYCLASS): BOOLEAN;
+    
+    /**
+    * OEREB-Kataster (und kompatible Modelle)
+    */
+    !!@ fn.description = "Prüft bei einer Klasse, ob die Assoziationen auf sich
+    !!@ selber korrekt sind und keine Verweise auf das gleiche Objekt,
+    !!@ keine identischen Verweise und keine Endlosschleifen vorhanden sind.
+    !!@ Hardcodiert für das OEREB-Rahmenmodell und kompatible Modelle.";
+    !!@ fn.param = "Objects Alle Objekte der Klasse.";
+    !!@ fn.return = "True, falls keine Fehler gefunden werden. False, falls Fehler 
+    !!@ gefunden werden.";
+    !!@ fn.since = "2019-01-27";
+    FUNCTION isValidDocumentsCycle (Objects: OBJECTS OF ANYCLASS): BOOLEAN;
+    
+    
+END SO_FunctionsExt.

@@ -1,0 +1,1637 @@
+INTERLIS 2.3;
+/**
+*!!------------------------------------------------------------------------------
+*!! Version    | wer | Änderung
+*!!------------------------------------------------------------------------------
+*!! 2020-10-05 | AL  | Initialversion Basis SO_ARP_Nutzungsplanung_Nachfuehrung_20201005_Validierung_20211006.ili
+*!!==============================================================================
+*/
+!!@ technicalContact = "mailto:agi@bd.so.ch";
+CONTRACTED MODEL SO_ARP_Nutzungsplanung_Nachfuehrung_20201005_Validierung_20201005 (de)
+AT "https://arp.so.ch"
+VERSION "2022-02-28"  =
+  IMPORTS SO_ARP_Nutzungsplanung_Nachfuehrung_20201005,SO_FunctionsExt;
+
+  VIEW TOPIC Rechtsvorschriften_Validierung =
+  DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften;
+
+    VIEW v_Dokument
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Rechtsvorschriften.Dokument;
+    =
+      ALL OF Dokument;
+      !!@ name = checkDocumentURL
+      !!@ ilivalid.msg = "Dokument '{TextImWeb}' wurde nicht gefunden."
+      MANDATORY CONSTRAINT SO_FunctionsExt.isHttpResource(TextImWeb, "");
+    END v_Dokument;
+
+  END Rechtsvorschriften_Validierung;
+
+  VIEW TOPIC Nutzungsplanung_Validierung =
+  DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung;
+
+    VIEW v_Grundnutzung
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Grundnutzung;
+    =
+      ALL OF Grundnutzung;
+      !!@ name = checkMinimumFlaeche
+      !!@ ilivalid.msg = "Fläche der Geometrie ist kleiner 0.01 m2."
+      MANDATORY CONSTRAINT SO_FunctionsExt.area(Geometrie) > 0.01;
+
+      !!@ name = hasRingSelfIntersection
+      !!@ ilivalid.msg = "Geometrie enthält Ring-Self-Intersection."
+      MANDATORY CONSTRAINT NOT ( SO_FunctionsExt.hasRingSelfIntersection(Geometrie) );
+
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+          (
+            (Rechtsstatus == #AenderungMitVorwirkung
+              OR
+            Rechtsstatus == #AenderungOhneVorwirkung)
+           AND
+            (DEFINED (Geschaefts_Nummer))
+           )
+           OR
+            (Rechtsstatus == #inKraft
+           AND
+            (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))))
+           ;
+
+      !!@ name = GrundnutzungAreaCheck
+      SET CONSTRAINT
+        WHERE
+            Rechtsstatus == #inKraft :
+        INTERLIS.areAreas(ALL, UNDEFINED, >> Geometrie);
+    END v_Grundnutzung;
+
+    VIEW v_Typ_Grundnutzung
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ_Grundnutzung;
+    =
+      ALL OF Typ_Grundnutzung;
+      !!@ ilivalid.msg = "Attributwert Nutzungsziffer_Art fehlt bei Typ '{Code_kommunal}'"
+      MANDATORY CONSTRAINT NOT (DEFINED (Nutzungsziffer)) OR (DEFINED (Nutzungsziffer) AND DEFINED (Nutzungsziffer_Art));
+
+      !!@ ilivalid.msg = "Attributwert Nutzungsziffer fehlt bei Typ '{Code_kommunal}'"
+      MANDATORY CONSTRAINT NOT (DEFINED (Nutzungsziffer_Art)) OR (DEFINED (Nutzungsziffer) AND DEFINED (Nutzungsziffer_Art));
+
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+          (
+            (Typ_Kt == #N110_Wohnzone_1_G)
+            AND
+            ((Code_kommunal == "1101") OR (Code_kommunal == "1102") OR (Code_kommunal == "1103") OR (Code_kommunal == "1104") OR (Code_kommunal == "1105") OR (Code_kommunal == "1106") OR (Code_kommunal == "1107") OR (Code_kommunal == "1108") OR (Code_kommunal == "1109"))
+          )
+          OR
+          (
+            (Typ_Kt == #N111_Wohnzone_2_G)
+            AND
+            ((Code_kommunal == "1111") OR (Code_kommunal == "1112") OR (Code_kommunal == "1113") OR (Code_kommunal == "1114") OR (Code_kommunal == "1115") OR (Code_kommunal == "1116") OR (Code_kommunal == "1117") OR (Code_kommunal == "1118") OR (Code_kommunal == "1119"))
+          )
+          OR
+          (
+            (Typ_Kt == #N112_Wohnzone_3_G)
+            AND
+            ((Code_kommunal == "1121") OR(Code_kommunal == "1122") OR (Code_kommunal == "1123") OR (Code_kommunal == "1124") OR (Code_kommunal == "1125") OR (Code_kommunal == "1126") OR (Code_kommunal == "1127") OR (Code_kommunal == "1128") OR (Code_kommunal == "1129"))
+          )
+          OR
+          (
+            (Typ_Kt == #N113_Wohnzone_4_G)
+            AND
+            ((Code_kommunal == "1131") OR (Code_kommunal == "1132") OR (Code_kommunal == "1133") OR (Code_kommunal == "1134") OR (Code_kommunal == "1135") OR (Code_kommunal == "1136") OR (Code_kommunal == "1137") OR (Code_kommunal == "1138") OR (Code_kommunal == "1139"))
+          )
+          OR
+          (
+            (Typ_Kt == #N114_Wohnzone_5_G)
+            AND
+            ((Code_kommunal == "1141") OR (Code_kommunal == "1142") OR (Code_kommunal == "1143") OR (Code_kommunal == "1144") OR (Code_kommunal == "1145") OR (Code_kommunal == "1146") OR (Code_kommunal == "1147") OR (Code_kommunal == "1148") OR (Code_kommunal == "1149"))
+          )
+          OR
+          (
+            (Typ_Kt == #N115_Wohnzone_6_G)
+            AND
+            ((Code_kommunal == "1151") OR (Code_kommunal == "1152") OR (Code_kommunal == "1153") OR (Code_kommunal == "1154") OR (Code_kommunal == "1155") OR (Code_kommunal == "1156") OR (Code_kommunal == "1157") OR (Code_kommunal == "1158") OR (Code_kommunal == "1159"))
+          )
+          OR
+          (
+            (Typ_Kt == #N116_Wohnzone_7_G_und_groesser)
+            AND
+            ((Code_kommunal == "1161") OR (Code_kommunal == "1162") OR (Code_kommunal == "1163") OR (Code_kommunal == "1164") OR (Code_kommunal == "1165") OR (Code_kommunal == "1166") OR (Code_kommunal == "1167") OR (Code_kommunal == "1168") OR (Code_kommunal == "1169"))
+          )
+          OR
+          (
+            (Typ_Kt == #N117_Zone_fuer_Terrassenhaeuser_Terrassensiedlung)
+            AND
+            ((Code_kommunal == "1171") OR (Code_kommunal == "1172") OR (Code_kommunal == "1173") OR (Code_kommunal == "1174") OR (Code_kommunal == "1175") OR (Code_kommunal == "1176") OR (Code_kommunal == "1177") OR (Code_kommunal == "1178") OR (Code_kommunal == "1179"))
+          )
+          OR
+          (
+            (Typ_Kt == #N120_Gewerbezone_ohne_Wohnen)
+            AND
+            ((Code_kommunal == "1201") OR (Code_kommunal == "1202") OR (Code_kommunal == "1203") OR (Code_kommunal == "1204") OR (Code_kommunal == "1205") OR (Code_kommunal == "1206") OR (Code_kommunal == "1207") OR (Code_kommunal == "1208") OR (Code_kommunal == "1209"))
+          )
+          OR
+          (
+            (Typ_Kt == #N121_Industriezone)
+            AND
+            ((Code_kommunal == "1211") OR (Code_kommunal == "1212") OR (Code_kommunal == "1213") OR (Code_kommunal == "1214") OR (Code_kommunal == "1215") OR (Code_kommunal == "1216") OR (Code_kommunal == "1217") OR (Code_kommunal == "1218") OR (Code_kommunal == "1219"))
+          )
+          OR
+          (
+            (Typ_Kt == #N122_Arbeitszone)
+            AND
+            ((Code_kommunal == "1221") OR (Code_kommunal == "1222") OR (Code_kommunal == "1223") OR (Code_kommunal == "1224") OR (Code_kommunal == "1225") OR (Code_kommunal == "1226") OR (Code_kommunal == "1227") OR (Code_kommunal == "1228") OR (Code_kommunal == "1229"))
+          )
+          OR
+          (
+            (Typ_Kt == #N130_Gewerbezone_mit_Wohnen_Mischzone)
+            AND
+            ((Code_kommunal == "1301") OR (Code_kommunal == "1302") OR (Code_kommunal == "1303") OR (Code_kommunal == "1304") OR (Code_kommunal == "1305") OR (Code_kommunal == "1306") OR (Code_kommunal == "1307") OR (Code_kommunal == "1308") OR (Code_kommunal == "1309"))
+          )
+          OR
+          (
+            (Typ_Kt == #N131_Gewerbezone_mit_Wohnen_Mischzone_2_G)
+            AND
+            ((Code_kommunal == "1311") OR (Code_kommunal == "1312") OR (Code_kommunal == "1313") OR (Code_kommunal == "1314") OR (Code_kommunal == "1315") OR (Code_kommunal == "1316") OR (Code_kommunal == "1317") OR (Code_kommunal == "1318") OR (Code_kommunal == "1319"))
+          )
+          OR
+          (
+            (Typ_Kt == #N132_Gewerbezone_mit_Wohnen_Mischzone_3_G)
+            AND
+            ((Code_kommunal == "1321") OR (Code_kommunal == "1322") OR (Code_kommunal == "1323") OR (Code_kommunal == "1324") OR (Code_kommunal == "1325") OR (Code_kommunal == "1326") OR (Code_kommunal == "1327") OR (Code_kommunal == "1328") OR (Code_kommunal == "1329"))
+          )
+          OR
+          (
+            (Typ_Kt == #N133_Gewerbezone_mit_Wohnen_Mischzone_4_G_und_groesser)
+            AND
+            ((Code_kommunal == "1331") OR (Code_kommunal == "1332") OR (Code_kommunal == "1333") OR (Code_kommunal == "1334") OR (Code_kommunal == "1335") OR (Code_kommunal == "1336") OR (Code_kommunal == "1337") OR (Code_kommunal == "1338") OR (Code_kommunal == "1339"))
+          )
+          OR
+          (
+            (Typ_Kt == #N134_Zone_fuer_publikumsintensive_Anlagen)
+            AND
+            ((Code_kommunal == "1341") OR (Code_kommunal == "1342") OR (Code_kommunal == "1343") OR (Code_kommunal == "1344") OR (Code_kommunal == "1345") OR (Code_kommunal == "1346") OR (Code_kommunal == "1347") OR (Code_kommunal == "1348") OR (Code_kommunal == "1349"))
+          )
+          OR
+          (
+            (Typ_Kt == #N140_Kernzone)
+            AND
+            ((Code_kommunal == "1401") OR (Code_kommunal == "1402") OR (Code_kommunal == "1403") OR (Code_kommunal == "1404") OR (Code_kommunal == "1405") OR (Code_kommunal == "1406") OR (Code_kommunal == "1407") OR (Code_kommunal == "1408") OR (Code_kommunal == "1409"))
+          )
+          OR
+          (
+            (Typ_Kt == #N141_Zentrumszone)
+            AND
+            ((Code_kommunal == "1411") OR (Code_kommunal == "1412") OR (Code_kommunal == "1413") OR (Code_kommunal == "1414") OR (Code_kommunal == "1415") OR (Code_kommunal == "1416") OR (Code_kommunal == "1417") OR (Code_kommunal == "1418") OR (Code_kommunal == "1419"))
+          )
+          OR
+          (
+            (Typ_Kt == #N142_Erhaltungszone)
+            AND
+            ((Code_kommunal == "1421") OR (Code_kommunal == "1422") OR (Code_kommunal == "1423") OR (Code_kommunal == "1424") OR (Code_kommunal == "1425") OR (Code_kommunal == "1426") OR (Code_kommunal == "1427") OR (Code_kommunal == "1428") OR (Code_kommunal == "1429"))
+          )
+          OR
+          (
+            (Typ_Kt == #N150_Zone_fuer_oeffentliche_Bauten)
+            AND
+            ((Code_kommunal == "1501") OR (Code_kommunal == "1502") OR (Code_kommunal == "1503") OR (Code_kommunal == "1504") OR (Code_kommunal == "1505") OR (Code_kommunal == "1506") OR (Code_kommunal == "1507") OR (Code_kommunal == "1508") OR (Code_kommunal == "1509"))
+          )
+          OR
+          (
+            (Typ_Kt == #N151_Zone_fuer_oeffentliche_Anlagen)
+            AND
+            ((Code_kommunal == "1511") OR (Code_kommunal == "1512") OR (Code_kommunal == "1513") OR (Code_kommunal == "1514") OR (Code_kommunal == "1515") OR (Code_kommunal == "1516") OR (Code_kommunal == "1517") OR (Code_kommunal == "1518") OR (Code_kommunal == "1519"))
+          )
+          OR
+          (
+            (Typ_Kt == #N160_Gruen_und_Freihaltezone_innerhalb_Bauzone)
+            AND
+            ((Code_kommunal == "1601") OR (Code_kommunal == "1602") OR (Code_kommunal == "1603") OR (Code_kommunal == "1604") OR (Code_kommunal == "1605") OR (Code_kommunal == "1606") OR (Code_kommunal == "1607") OR (Code_kommunal == "1608") OR (Code_kommunal == "1609"))
+          )
+          OR
+          (
+            (Typ_Kt == #N161_kommunale_Uferschutzzone_innerhalb_Bauzone)
+            AND
+            ((Code_kommunal == "1611") OR (Code_kommunal == "1612") OR (Code_kommunal == "1613") OR (Code_kommunal == "1614") OR (Code_kommunal == "1615") OR (Code_kommunal == "1616") OR (Code_kommunal == "1617") OR (Code_kommunal == "1618") OR (Code_kommunal == "1619"))
+          )
+          OR
+          (
+            (Typ_Kt == #N162_Landwirtschaftliche_Kernzone)
+            AND
+            (Code_kommunal == "1620")
+          )
+          OR
+          (
+            (Typ_Kt == #N163_Weilerzone)
+            AND
+            ((Code_kommunal == "1631") OR (Code_kommunal == "1632") OR (Code_kommunal == "1633") OR (Code_kommunal == "1634") OR (Code_kommunal == "1635") OR (Code_kommunal == "1636") OR (Code_kommunal == "1637") OR (Code_kommunal == "1638") OR (Code_kommunal == "1639"))
+          )
+          OR
+          (
+            (Typ_Kt == #N169_weitere_eingeschraenkte_Bauzonen)
+            AND
+            ((Code_kommunal == "1691") OR (Code_kommunal == "1692") OR (Code_kommunal == "1693") OR (Code_kommunal == "1694") OR (Code_kommunal == "1695") OR (Code_kommunal == "1696") OR (Code_kommunal == "1697") OR (Code_kommunal == "1698") OR (Code_kommunal == "1699"))
+          )
+          OR
+          (
+            (Typ_Kt == #N170_Zone_fuer_Freizeit_und_Erholung)
+            AND
+            ((Code_kommunal == "1701") OR (Code_kommunal == "1702") OR (Code_kommunal == "1703") OR (Code_kommunal == "1704") OR (Code_kommunal == "1705") OR (Code_kommunal == "1706") OR (Code_kommunal == "1707") OR (Code_kommunal == "1708") OR (Code_kommunal == "1709"))
+          )
+          OR
+          (
+            (Typ_Kt == #N180_Verkehrszone_Strasse)
+            AND
+            (Code_kommunal == "1800")
+          )
+          OR
+          (
+            (Typ_Kt == #N181_Verkehrszone_Bahnareal)
+            AND
+            (Code_kommunal == "1810")
+          )
+          OR
+          (
+            (Typ_Kt == #N182_Verkehrszone_Flugplatzareal)
+            AND
+            (Code_kommunal == "1820")
+          )
+          OR
+          (
+            (Typ_Kt == #N189_weitere_Verkehrszonen)
+            AND
+            ((Code_kommunal == "1891") OR (Code_kommunal == "1892") OR (Code_kommunal == "1893") OR (Code_kommunal == "1894") OR (Code_kommunal == "1895") OR (Code_kommunal == "1896") OR (Code_kommunal == "1897") OR (Code_kommunal == "1898") OR (Code_kommunal == "1899"))
+          )
+          OR
+          (
+            (Typ_Kt == #N190_Spezialzone)
+            AND
+            ((Code_kommunal == "1901") OR (Code_kommunal == "1902") OR (Code_kommunal == "1903") OR (Code_kommunal == "1904") OR (Code_kommunal == "1905") OR (Code_kommunal == "1906") OR (Code_kommunal == "1907") OR (Code_kommunal == "1908") OR (Code_kommunal == "1909") OR (Code_kommunal == "1910") OR (Code_kommunal == "1911") OR (Code_kommunal == "1912") OR (Code_kommunal == "1913") OR (Code_kommunal == "1914") OR (Code_kommunal == "1915") OR (Code_kommunal == "1916") OR (Code_kommunal == "1917") OR (Code_kommunal == "1919") OR (Code_kommunal == "1919"))
+          )
+          OR
+          (
+            (Typ_Kt == #N210_Landwirtschaftszone)
+            AND
+            (Code_kommunal == "2100")
+          )
+          OR
+          (
+            (Typ_Kt == #N220_Spezielle_Landwirtschaftszone)
+            AND
+            ((Code_kommunal == "2201") OR (Code_kommunal == "2202") OR (Code_kommunal == "2203") OR (Code_kommunal == "2204") OR (Code_kommunal == "2205") OR (Code_kommunal == "2206") OR (Code_kommunal == "2207") OR (Code_kommunal == "2208") OR (Code_kommunal == "2209"))
+          )
+          OR
+          (
+            (Typ_Kt == #N230_Rebbauzone)
+            AND
+            ((Code_kommunal == "2301") OR (Code_kommunal == "2302") OR (Code_kommunal == "2303") OR (Code_kommunal == "2304") OR (Code_kommunal == "2305") OR (Code_kommunal == "2306") OR (Code_kommunal == "2307") OR (Code_kommunal == "2308") OR (Code_kommunal == "2309"))
+          )
+          OR
+          (
+            (Typ_Kt == #N290_weitere_Landwirtschaftszonen)
+            AND
+            ((Code_kommunal == "2901") OR (Code_kommunal == "2902") OR (Code_kommunal == "2903") OR (Code_kommunal == "2904") OR (Code_kommunal == "2905") OR (Code_kommunal == "2906") OR (Code_kommunal == "2907") OR (Code_kommunal == "2908") OR (Code_kommunal == "2909"))
+          )
+          OR
+          (
+            (Typ_Kt == #N310_kommunale_Naturschutzzone)
+            AND
+            ((Code_kommunal == "3101") OR (Code_kommunal == "3102") OR (Code_kommunal == "3103") OR (Code_kommunal == "3104") OR (Code_kommunal == "3105") OR (Code_kommunal == "3106") OR (Code_kommunal == "3107") OR (Code_kommunal == "3108") OR (Code_kommunal == "3109"))
+          )
+          OR
+          (
+            (Typ_Kt == #N311_Waldrandschutzzone)
+            AND
+            ((Code_kommunal == "3111") OR (Code_kommunal == "3112") OR (Code_kommunal == "3113") OR (Code_kommunal == "3114") OR (Code_kommunal == "3115") OR (Code_kommunal == "3116") OR (Code_kommunal == "3117") OR (Code_kommunal == "3118") OR (Code_kommunal == "3119"))
+          )
+          OR
+          (
+            (Typ_Kt == #N319_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften)
+            AND
+            ((Code_kommunal == "3191") OR (Code_kommunal == "3192") OR (Code_kommunal == "3193") OR (Code_kommunal == "3194") OR (Code_kommunal == "3195") OR (Code_kommunal == "3196") OR (Code_kommunal == "3197") OR (Code_kommunal == "3198") OR (Code_kommunal == "3199"))
+          )
+          OR
+          (
+            (Typ_Kt == #N320_Gewaesser)
+            AND
+            (Code_kommunal == "3200")
+          )
+          OR
+          (
+            (Typ_Kt == #N329_weitere_Zonen_fuer_Gewaesser_und_ihre_Ufer)
+            AND
+            ((Code_kommunal == "3291") OR (Code_kommunal == "3292") OR (Code_kommunal == "3293") OR (Code_kommunal == "3294") OR (Code_kommunal == "3295") OR (Code_kommunal == "3296") OR (Code_kommunal == "3297") OR (Code_kommunal == "3298") OR (Code_kommunal == "3299"))
+          )
+          OR
+          (
+            (Typ_Kt == #N390_weitere_Schutzzonen_ausserhalb_Bauzonen)
+            AND
+            ((Code_kommunal == "3901") OR (Code_kommunal == "3902") OR (Code_kommunal == "3903") OR (Code_kommunal == "3904") OR (Code_kommunal == "3905") OR (Code_kommunal == "3906") OR (Code_kommunal == "3907") OR (Code_kommunal == "3908") OR (Code_kommunal == "3909"))
+          )
+          OR
+          (
+            (Typ_Kt == #N420_Verkehrsflaeche_Strasse)
+            AND
+            (Code_kommunal == "4200")
+          )
+          OR
+          (
+            (Typ_Kt == #N421_Verkehrsflaeche_Bahnareal)
+            AND
+            (Code_kommunal == "4210")
+          )
+          OR
+          (
+            (Typ_Kt == #N422_Verkehrsflaeche_Flugplatzareal)
+            AND
+            (Code_kommunal == "4220")
+          )
+          OR
+          (
+            (Typ_Kt == #N429_weitere_Verkehrsflaechen)
+            AND
+            ((Code_kommunal == "4291") OR (Code_kommunal == "4292") OR (Code_kommunal == "4293") OR (Code_kommunal == "4294") OR (Code_kommunal == "4295") OR (Code_kommunal == "4296") OR (Code_kommunal == "4297") OR (Code_kommunal == "4298") OR (Code_kommunal == "4299"))
+          )
+          OR
+          (
+            (Typ_Kt == #N430_Reservezone_Wohnzone_Mischzone_Kernzone_Zentrumszone)
+            AND
+            (Code_kommunal == "4300")
+          )
+          OR
+          (
+            (Typ_Kt == #N431_Reservezone_Arbeiten)
+            AND
+            (Code_kommunal == "4310")
+          )
+          OR
+          (
+            (Typ_Kt == #N432_Reservezone_OeBA)
+            AND
+            (Code_kommunal == "4320")
+          )
+          OR
+          (
+            (Typ_Kt == #N439_Reservezone)
+            AND
+            ((Code_kommunal == "4391") OR (Code_kommunal == "4392") OR (Code_kommunal == "4393") OR (Code_kommunal == "4394") OR (Code_kommunal == "4395") OR (Code_kommunal == "4396") OR (Code_kommunal == "4397") OR (Code_kommunal == "4398") OR (Code_kommunal == "4399"))
+          )
+          OR
+          (
+            (Typ_Kt == #N440_Wald)
+            AND
+            (Code_kommunal == "4400")
+          )
+          OR
+          (
+            (Typ_Kt == #N490_Golfzone)
+            AND
+            ((Code_kommunal == "4901") OR (Code_kommunal == "4902") OR (Code_kommunal == "4903") OR (Code_kommunal == "4904") OR (Code_kommunal == "4905") OR (Code_kommunal == "4906") OR (Code_kommunal == "4907") OR (Code_kommunal == "4908") OR (Code_kommunal == "4909"))
+          )
+          OR
+          (
+            (Typ_Kt == #N491_Abbauzone)
+            AND
+            ((Code_kommunal == "4911") OR (Code_kommunal == "4912") OR (Code_kommunal == "4913") OR (Code_kommunal == "4914") OR (Code_kommunal == "4915") OR (Code_kommunal == "4916") OR (Code_kommunal == "4917") OR (Code_kommunal == "4918") OR (Code_kommunal == "4919"))
+          )
+          OR
+          (
+            (Typ_Kt == #N492_Deponiezone)
+            AND
+            ((Code_kommunal == "4921") OR (Code_kommunal == "4922") OR (Code_kommunal == "4923") OR (Code_kommunal == "4924") OR (Code_kommunal == "4925") OR (Code_kommunal == "4926") OR (Code_kommunal == "4927") OR (Code_kommunal == "4928") OR (Code_kommunal == "4929"))
+          )
+          OR
+          (
+            (Typ_Kt == #N499_weitere_Bauzonen_nach_Art18_RPG_ausserhalb_Bauzonen)
+            AND
+            ((Code_kommunal == "4991") OR (Code_kommunal == "4992") OR (Code_kommunal == "4993") OR (Code_kommunal == "4994") OR (Code_kommunal == "4995") OR (Code_kommunal == "4996") OR (Code_kommunal == "4997") OR (Code_kommunal == "4998") OR (Code_kommunal == "4999"))
+          );
+
+      !!@ ilivalid.msg = "Attributwert Bezeichnung ist nicht identisch zum Objektkatalog: '{Bezeichnung}' - '{Typ_Kt}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #N110_Wohnzone_1_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N111_Wohnzone_2_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N112_Wohnzone_3_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N113_Wohnzone_4_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N114_Wohnzone_5_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N115_Wohnzone_6_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N116_Wohnzone_7_G_und_groesser)
+        )
+        OR
+        (
+          (Typ_Kt == #N117_Zone_fuer_Terrassenhaeuser_Terrassensiedlung)
+        )
+        OR
+        (
+          (Typ_Kt == #N120_Gewerbezone_ohne_Wohnen)
+        )
+        OR
+        (
+          (Typ_Kt == #N121_Industriezone)
+        )
+        OR
+        (
+          (Typ_Kt == #N122_Arbeitszone)
+        )
+        OR
+        (
+          (Typ_Kt == #N130_Gewerbezone_mit_Wohnen_Mischzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N131_Gewerbezone_mit_Wohnen_Mischzone_2_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N132_Gewerbezone_mit_Wohnen_Mischzone_3_G)
+        )
+        OR
+        (
+          (Typ_Kt == #N133_Gewerbezone_mit_Wohnen_Mischzone_4_G_und_groesser)
+        )
+        OR
+        (
+          (Typ_Kt == #N134_Zone_fuer_publikumsintensive_Anlagen)
+        )
+        OR
+        (
+          (Typ_Kt == #N140_Kernzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N141_Zentrumszone)
+        )
+        OR
+        (
+          (Typ_Kt == #N142_Erhaltungszone)
+        )
+        OR
+        (
+          (Typ_Kt == #N150_Zone_fuer_oeffentliche_Bauten)
+        )
+        OR
+        (
+          (Typ_Kt == #N151_Zone_fuer_oeffentliche_Anlagen)
+        )
+        OR
+        (
+          (Typ_Kt == #N160_Gruen_und_Freihaltezone_innerhalb_Bauzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N161_kommunale_Uferschutzzone_innerhalb_Bauzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N162_Landwirtschaftliche_Kernzone)
+          AND
+          (Bezeichnung == "Landwirtschaftliche Kernzone")
+        )
+        OR
+        (
+          (Typ_Kt == #N163_Weilerzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N169_weitere_eingeschraenkte_Bauzonen)
+        )
+        OR
+        (
+          (Typ_Kt == #N170_Zone_fuer_Freizeit_und_Erholung)
+        )
+        OR
+        (
+          (Typ_Kt == #N180_Verkehrszone_Strasse)
+          AND
+          (Bezeichnung == "Verkehrszone Strasse")
+        )
+        OR
+        (
+          (Typ_Kt == #N181_Verkehrszone_Bahnareal)
+          AND
+          (Bezeichnung == "Verkehrszone Bahnareal")
+        )
+        OR
+        (
+          (Typ_Kt == #N182_Verkehrszone_Flugplatzareal)
+          AND
+          (Bezeichnung == "Verkehrszone Flugplatzareal")
+        )
+        OR
+        (
+          (Typ_Kt == #N189_weitere_Verkehrszonen)
+        )
+        OR
+        (
+          (Typ_Kt == #N190_Spezialzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N210_Landwirtschaftszone)
+          AND
+          (Bezeichnung == "Landwirtschaftszone")
+        )
+        OR
+        (
+          (Typ_Kt == #N220_Spezielle_Landwirtschaftszone)
+        )
+        OR
+        (
+          (Typ_Kt == #N230_Rebbauzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N290_weitere_Landwirtschaftszonen)
+        )
+        OR
+        (
+          (Typ_Kt == #N310_kommunale_Naturschutzzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N311_Waldrandschutzzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N319_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften)
+        )
+        OR
+        (
+          (Typ_Kt == #N320_Gewaesser)
+          AND
+          (Bezeichnung == "Gewässer")
+        )
+        OR
+        (
+          (Typ_Kt == #N329_weitere_Zonen_fuer_Gewaesser_und_ihre_Ufer)
+        )
+        OR
+        (
+          (Typ_Kt == #N390_weitere_Schutzzonen_ausserhalb_Bauzonen)
+        )
+        OR
+        (
+          (Typ_Kt == #N420_Verkehrsflaeche_Strasse)
+          AND
+          (Bezeichnung == "Verkehrsfläche Strasse")
+        )
+        OR
+        (
+          (Typ_Kt == #N421_Verkehrsflaeche_Bahnareal)
+          AND
+          (Bezeichnung == "Verkehrsfläche Bahnareal")
+        )
+        OR
+        (
+          (Typ_Kt == #N422_Verkehrsflaeche_Flugplatzareal)
+          AND
+          (Bezeichnung == "Verkehrsfläche Flugplatzareal")
+        )
+        OR
+        (
+          (Typ_Kt == #N429_weitere_Verkehrsflaechen)
+        )
+        OR
+        (
+          (Typ_Kt == #N430_Reservezone_Wohnzone_Mischzone_Kernzone_Zentrumszone)
+          AND
+          (Bezeichnung == "Reservezone Wohnzone, Mischzone, Kernzone und Zentrumszone")
+        )
+        OR
+        (
+          (Typ_Kt == #N431_Reservezone_Arbeiten)
+          AND
+          (Bezeichnung == "Reservezone Arbeiten")
+        )
+        OR
+        (
+          (Typ_Kt == #N432_Reservezone_OeBA)
+          AND
+          (Bezeichnung == "Reservezone OeBA")
+        )
+        OR
+        (
+          (Typ_Kt == #N439_Reservezone)
+        )
+        OR
+        (
+          (Typ_Kt == #N440_Wald)
+          AND
+          (Bezeichnung == "Wald")
+        )
+        OR
+        (
+          (Typ_Kt == #N490_Golfzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N491_Abbauzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N492_Deponiezone)
+        )
+        OR
+        (
+          (Typ_Kt == #N499_weitere_Bauzonen_nach_Art18_RPG_ausserhalb_Bauzonen)
+        );
+
+      !!@ ilivalid.msg = "Attributwert Verbindlichkeit ist nicht Nutzungsplanfestlegung '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+          (Verbindlichkeit == #Nutzungsplanfestlegung);
+    END v_Typ_Grundnutzung;
+
+    VIEW v_Ueberlagernd_Flaeche
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Ueberlagernd_Flaeche;
+    =
+      ALL OF Ueberlagernd_Flaeche;
+      !!@ name = checkMinimumFlaeche
+      !!@ ilivalid.msg = "Fläche der Geometrie ist kleiner 0.01 m2."
+      MANDATORY CONSTRAINT SO_FunctionsExt.area(Geometrie) > 0.01;
+
+      !!@ name = hasRingSelfIntersection
+      !!@ ilivalid.msg = "Geometrie enthält Ring-Self-Intersection."
+      MANDATORY CONSTRAINT NOT ( SO_FunctionsExt.hasRingSelfIntersection(Geometrie) );
+
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+        (
+          (Rechtsstatus == #AenderungMitVorwirkung
+            OR
+          Rechtsstatus == #AenderungOhneVorwirkung)
+            AND
+          (DEFINED (Geschaefts_Nummer))
+          )
+           OR
+          (Rechtsstatus == #inKraft
+            AND
+          (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))))
+           ;
+    END v_Ueberlagernd_Flaeche;
+
+    VIEW v_Typ_Ueberlagernd_Flaeche
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ_Ueberlagernd_Flaeche;
+    =
+      ALL OF Typ_Ueberlagernd_Flaeche;
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+      (
+        (
+          (Typ_Kt == #N510_ueberlagernde_Ortsbildschutzzone)
+          AND
+          ((Code_kommunal == "5101") OR (Code_kommunal == "5102") OR (Code_kommunal == "5103") OR (Code_kommunal == "5104") OR (Code_kommunal == "5105") OR (Code_kommunal == "5106") OR (Code_kommunal == "5107") OR (Code_kommunal == "5108") OR (Code_kommunal == "5109"))
+        )
+        OR
+        (
+          (Typ_Kt == #N523_Landschaftsschutzzone)
+          AND
+          ((Code_kommunal == "5231") OR (Code_kommunal == "5232") OR (Code_kommunal == "5233") OR (Code_kommunal == "5234") OR (Code_kommunal == "5235") OR (Code_kommunal == "5236") OR (Code_kommunal == "5237") OR (Code_kommunal == "5238") OR (Code_kommunal == "5239"))
+        )
+        OR
+        (
+          (Typ_Kt == #N526_kantonale_Landwirtschafts_und_Schutzzone_Witi)
+          AND
+          (Code_kommunal == "5260")
+        )
+        OR
+        (
+          (Typ_Kt == #N528_kommunale_Uferschutzzone_ausserhalb_Bauzonen)
+          AND
+          ((Code_kommunal == "5281") OR (Code_kommunal == "5282") OR (Code_kommunal == "5283") OR (Code_kommunal == "5284") OR (Code_kommunal == "5285") OR (Code_kommunal == "5286") OR (Code_kommunal == "5287") OR (Code_kommunal == "5288") OR (Code_kommunal == "5289"))
+        )
+        OR
+        (
+          (Typ_Kt == #N529_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften)
+          AND
+          ((Code_kommunal == "5291") OR (Code_kommunal == "5292") OR (Code_kommunal == "5293") OR (Code_kommunal == "5294") OR (Code_kommunal == "5295") OR (Code_kommunal == "5296") OR (Code_kommunal == "5297") OR (Code_kommunal == "5298") OR (Code_kommunal == "5299"))
+        )
+        OR
+        (
+          (Typ_Kt == #N590_Hofstattzone_Freihaltezone)
+          AND
+          ((Code_kommunal == "5901") OR (Code_kommunal == "5902") OR (Code_kommunal == "5903") OR (Code_kommunal == "5904") OR (Code_kommunal == "5905") OR (Code_kommunal == "5906") OR (Code_kommunal == "5907") OR (Code_kommunal == "5908") OR (Code_kommunal == "5909"))
+        )
+        OR
+        (
+          (Typ_Kt == #N591_Bauliche_Einschraenkungen)
+          AND
+          ((Code_kommunal == "5911") OR (Code_kommunal == "5912") OR (Code_kommunal == "5913") OR (Code_kommunal == "5914") OR (Code_kommunal == "5915") OR (Code_kommunal == "5916") OR (Code_kommunal == "5917") OR (Code_kommunal == "5918") OR (Code_kommunal == "5919"))
+        )
+        OR
+        (
+          (Typ_Kt == #N592_Hecken_Feldgehoelz_Ufergehoelz)
+          AND
+          ((Code_kommunal == "5921") OR (Code_kommunal == "5922") OR (Code_kommunal == "5923") OR (Code_kommunal == "5924") OR (Code_kommunal == "5925") OR (Code_kommunal == "5926") OR (Code_kommunal == "5927") OR (Code_kommunal == "5928") OR (Code_kommunal == "5929"))
+        )
+        OR
+        (
+          (Typ_Kt == #N599_weitere_ueberlagernde_Nutzungszonen)
+          AND
+          ((Code_kommunal == "5991") OR (Code_kommunal == "5992") OR (Code_kommunal == "5993") OR (Code_kommunal == "5994") OR (Code_kommunal == "5995") OR (Code_kommunal == "5996") OR (Code_kommunal == "5997") OR (Code_kommunal == "5998") OR (Code_kommunal == "5999"))
+        )
+        OR
+        (
+          (Typ_Kt == #N610_Perimeter_kantonaler_Nutzungsplan)
+          AND
+          (Code_kommunal == "6100")
+        )
+        OR
+        (
+          (Typ_Kt == #N611_Perimeter_kommunaler_Gestaltungsplan)
+          AND
+          (Code_kommunal == "6110")
+        )
+        OR
+        (
+          (Typ_Kt == #N620_Perimeter_Gestaltungsplanpflicht)
+          AND
+          (Code_kommunal == "6200")
+        )
+        OR
+        (
+          (Typ_Kt == #N691_kommunales_Vorranggebiet_Natur_und_Landschaft)
+          AND
+          ((Code_kommunal == "6911") OR (Code_kommunal == "6912") OR (Code_kommunal == "6913") OR (Code_kommunal == "6914") OR (Code_kommunal == "6915") OR (Code_kommunal == "6916") OR (Code_kommunal == "6917") OR (Code_kommunal == "6918") OR (Code_kommunal == "6919"))
+        )
+        OR
+        (
+          (Typ_Kt == #N692_Planungszone)
+          AND
+          ((Code_kommunal == "6921") OR (Code_kommunal == "6922") OR (Code_kommunal == "6923") OR (Code_kommunal == "6924") OR (Code_kommunal == "6925") OR (Code_kommunal == "6926") OR (Code_kommunal == "6927") OR (Code_kommunal == "6928") OR (Code_kommunal == "6929"))
+        )
+        OR
+        (
+          (Typ_Kt == #N699_weitere_flaechenbezogene_Festlegungen_NP)
+          AND
+          ((Code_kommunal == "6991") OR (Code_kommunal == "6992") OR (Code_kommunal == "6993") OR (Code_kommunal == "6994") OR (Code_kommunal == "6995") OR (Code_kommunal == "6996") OR (Code_kommunal == "6997") OR (Code_kommunal == "6998") OR (Code_kommunal == "6999"))
+        )
+        OR
+        (
+          (Typ_Kt == #N813_Naturobjekt)
+          AND
+          (Code_kommunal == "8130")
+        )
+        OR
+        (
+          (Typ_Kt == #N821_kommunal_geschuetztes_Kulturobjekt)
+          AND
+          (Code_kommunal == "8210")
+        )
+        OR
+        (
+          (Typ_Kt == #N822_schuetzenswertes_Kulturobjekt)
+          AND
+          (Code_kommunal == "8220")
+        )
+        OR
+        (
+          (Typ_Kt == #N823_erhaltenswertes_Kulturobjekt)
+          AND
+          (Code_kommunal == "8230")
+        )
+      )  ;
+
+      !!@ ilivalid.msg = "Attributwert Bezeichnung ist nicht identisch zum Objektkatalog: '{Bezeichnung}' - '{Typ_Kt}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #N510_ueberlagernde_Ortsbildschutzzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N523_Landschaftsschutzzone)
+        )
+        OR
+        (
+          (Typ_Kt == #N526_kantonale_Landwirtschafts_und_Schutzzone_Witi)
+          AND
+          (Bezeichnung == "kantonale Landwirtschafts- und Schutzzone Witi")
+        )
+        OR
+        (
+          (Typ_Kt == #N528_kommunale_Uferschutzzone_ausserhalb_Bauzonen)
+        )
+        OR
+        (
+          (Typ_Kt == #N529_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften)
+        )
+        OR
+        (
+          (Typ_Kt == #N590_Hofstattzone_Freihaltezone)
+        )
+        OR
+        (
+          (Typ_Kt == #N591_Bauliche_Einschraenkungen)
+        )
+        OR
+        (
+          (Typ_Kt == #N592_Hecken_Feldgehoelz_Ufergehoelz)
+        )
+        OR
+        (
+          (Typ_Kt == #N599_weitere_ueberlagernde_Nutzungszonen)
+        )
+        OR
+        (
+          (Typ_Kt == #N610_Perimeter_kantonaler_Nutzungsplan)
+          AND
+          (Bezeichnung == "Perimeter kantonaler Nutzungsplan")
+        )
+        OR
+        (
+          (Typ_Kt == #N611_Perimeter_kommunaler_Gestaltungsplan)
+          AND
+          (Bezeichnung == "Perimeter kommunaler Gestaltungsplan")
+        )
+        OR
+        (
+          (Typ_Kt == #N620_Perimeter_Gestaltungsplanpflicht)
+          AND
+          (Bezeichnung == "Perimeter Gestaltungsplanpflicht")
+        )
+        OR
+        (
+          (Typ_Kt == #N691_kommunales_Vorranggebiet_Natur_und_Landschaft)
+        )
+        OR
+        (
+          (Typ_Kt == #N692_Planungszone)
+        )
+        OR
+        (
+          (Typ_Kt == #N699_weitere_flaechenbezogene_Festlegungen_NP)
+        )
+        OR
+        (
+          (Typ_Kt == #N813_Naturobjekt)
+          AND
+          (Bezeichnung == "Naturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N821_kommunal_geschuetztes_Kulturobjekt)
+          AND
+          (Bezeichnung == "kommunal geschütztes Kulturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N822_schuetzenswertes_Kulturobjekt)
+          AND
+          (Bezeichnung == "schützenswertes Kulturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N823_erhaltenswertes_Kulturobjekt)
+          AND
+          (Bezeichnung == "erhaltenswertes Kulturobjekt")
+        );
+
+      !!@ ilivalid.msg = "Attributwert Verbindlichkeit ist nicht korrekt - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Verbindlichkeit == #Nutzungsplanfestlegung)
+        OR
+          (Typ_Kt == #N699_weitere_flaechenbezogene_Festlegungen_NP
+          AND
+          (Verbindlichkeit == #Nutzungsplanfestlegung
+          OR 
+          Verbindlichkeit != #Nutzungsplanfestlegung))
+        );
+    END v_Typ_Ueberlagernd_Flaeche;
+
+    VIEW v_Ueberlagernd_Linie
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Ueberlagernd_Linie;
+    =
+      ALL OF Ueberlagernd_Linie;
+      !!@ name = checkMinimumLaenge
+      !!@ ilivalid.msg = "Länge der Geometrie ist kleiner 0.1 m."
+      MANDATORY CONSTRAINT SO_FunctionsExt.length(Geometrie) > 0.1;
+
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+        (
+          (Rechtsstatus == #AenderungMitVorwirkung
+            OR
+          Rechtsstatus == #AenderungOhneVorwirkung)
+            AND
+          (DEFINED (Geschaefts_Nummer))
+          )
+           OR
+          (Rechtsstatus == #inKraft
+            AND
+          (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))))
+           ;
+    END v_Ueberlagernd_Linie;
+
+    VIEW v_Typ_Ueberlagernd_Linie
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ_Ueberlagernd_Linie;
+    =
+      ALL OF Typ_Ueberlagernd_Linie;
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #N799_weitere_linienbezogene_Festlegungen_NP)
+          AND
+          ((Code_kommunal == "7991") OR (Code_kommunal == "7992") OR (Code_kommunal == "7993") OR (Code_kommunal == "7994") OR (Code_kommunal == "7995") OR (Code_kommunal == "7996") OR (Code_kommunal == "7997") OR (Code_kommunal == "7998") OR (Code_kommunal == "7999"))
+        );
+    END v_Typ_Ueberlagernd_Linie;
+
+    VIEW v_Ueberlagernd_Punkt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Ueberlagernd_Punkt;
+    =
+      ALL OF Ueberlagernd_Punkt;
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+        (
+          (Rechtsstatus == #AenderungMitVorwirkung
+            OR
+          Rechtsstatus == #AenderungOhneVorwirkung)
+            AND
+          (DEFINED (Geschaefts_Nummer))
+          )
+           OR
+          (Rechtsstatus == #inKraft
+            AND
+          (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))))
+           ;
+    END v_Ueberlagernd_Punkt;
+
+    VIEW v_Typ_Ueberlagernd_Punkt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Nutzungsplanung.Typ_Ueberlagernd_Punkt;
+    =
+      ALL OF Typ_Ueberlagernd_Punkt;
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #N810_geschuetzter_Einzelbaum)
+          AND
+          (Code_kommunal == "8100")
+        )
+        OR
+        (
+          (Typ_Kt == #N811_erhaltenswerter_Einzelbaum)
+          AND
+          (Code_kommunal == "8110")
+        )
+        OR
+        (
+          (Typ_Kt == #N813_Naturobjekt)
+          AND
+          (Code_kommunal == "8130")
+        )
+        OR
+        (
+          (Typ_Kt == #N821_kommunal_geschuetztes_Kulturobjekt)
+          AND
+          (Code_kommunal == "8210")
+        )
+        OR
+        (
+          (Typ_Kt == #N822_schuetzenswertes_Kulturobjekt)
+          AND
+          (Code_kommunal == "8220")
+        )
+        OR
+        (
+          (Typ_Kt == #N823_erhaltenswertes_Kulturobjekt)
+          AND
+          (Code_kommunal == "8230")
+        )
+        OR
+        (
+          (Typ_Kt == #N899_weitere_punktbezogene_Festlegungen_NP)
+          AND
+          ((Code_kommunal == "8991") OR (Code_kommunal == "8992") OR (Code_kommunal == "8993") OR (Code_kommunal == "8994") OR (Code_kommunal == "8995") OR (Code_kommunal == "8996") OR (Code_kommunal == "8997") OR (Code_kommunal == "8998") OR (Code_kommunal == "8999"))
+        );
+
+      !!@ ilivalid.msg = "Attributwert Bezeichnung ist nicht identisch zum Objektkatalog: '{Bezeichnung}' - '{Typ_Kt}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #N810_geschuetzter_Einzelbaum)
+          AND
+          (Bezeichnung == "geschützter Einzelbaum")
+        )
+        OR
+        (
+          (Typ_Kt == #N811_erhaltenswerter_Einzelbaum)
+          AND
+          (Bezeichnung == "erhaltenswerter Einzelbaum")
+        )
+        OR
+        (
+          (Typ_Kt == #N813_Naturobjekt)
+          AND
+          (Bezeichnung == "Naturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N821_kommunal_geschuetztes_Kulturobjekt)
+          AND
+          (Bezeichnung == "kommunal geschütztes Kulturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N822_schuetzenswertes_Kulturobjekt)
+          AND
+          (Bezeichnung == "schützenswertes Kulturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N823_erhaltenswertes_Kulturobjekt)
+          AND
+          (Bezeichnung == "erhaltenswertes Kulturobjekt")
+        )
+        OR
+        (
+          (Typ_Kt == #N899_weitere_punktbezogene_Festlegungen_NP)
+        );
+
+      !!@ ilivalid.msg = "Attributwert Verbindlichkeit ist nicht identisch zum Objektkatalog: '{Verbindlichkeit}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          Typ_Kt != #N899_weitere_punktbezogene_Festlegungen_NP
+          AND
+          Verbindlichkeit == #Nutzungsplanfestlegung
+        )
+        OR
+        (
+        Typ_Kt == #N899_weitere_punktbezogene_Festlegungen_NP
+          AND
+          (Verbindlichkeit == #Nutzungsplanfestlegung OR Verbindlichkeit == #orientierend OR Verbindlichkeit == #wegleitend OR Verbindlichkeit == #hinweisend)
+        )
+        ;
+    END v_Typ_Ueberlagernd_Punkt;
+
+  END Nutzungsplanung_Validierung;
+
+    VIEW TOPIC Erschliessungsplanung_Validierung =
+  DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung;
+
+    VIEW v_Erschliessung_Flaechenobjekt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung.Erschliessung_Flaechenobjekt;
+    =
+      ALL OF Erschliessung_Flaechenobjekt;
+      !!@ name = checkMinimumFlaeche
+      !!@ ilivalid.msg = "Fläche der Geometrie ist kleiner 0.01 m2."
+      MANDATORY CONSTRAINT SO_FunctionsExt.area(Geometrie) > 0.01;
+
+      !!@ name = hasRingSelfIntersection
+      !!@ ilivalid.msg = "Geometrie enthält Ring-Self-Intersection."
+      MANDATORY CONSTRAINT NOT ( SO_FunctionsExt.hasRingSelfIntersection(Geometrie) );
+
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+        (
+          (Rechtsstatus == #AenderungMitVorwirkung
+            OR
+          Rechtsstatus == #AenderungOhneVorwirkung)
+            AND
+          (DEFINED (Geschaefts_Nummer))
+          )
+           OR
+          (Rechtsstatus == #inKraft
+            AND
+          (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))));
+    END v_Erschliessung_Flaechenobjekt;
+
+
+    VIEW v_Typ_Erschliessung_Flaechenobjekt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung.Typ_Erschliessung_Flaechenobjekt;
+    =
+      ALL OF Typ_Erschliessung_Flaechenobjekt;
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #E560_Nationalstrasse)
+          AND
+          (Code_kommunal == "5600")
+        )
+        OR
+        (
+          (Typ_Kt == #E561_Kantonsstrasse)
+          AND
+          (Code_kommunal == "5610")
+        )
+        OR
+        (
+          (Typ_Kt == #E562_Sammelstrasse_kommunal)
+          AND
+          (Code_kommunal == "5620")
+        )
+        OR
+        (
+          (Typ_Kt == #E563_Erschliessungsstrasse_kommunal)
+          AND
+          (Code_kommunal == "5630")
+        )
+        OR
+        (
+          (Typ_Kt == #E564_Flurweg_mit_Erschliessungsfunktion)
+          AND
+          (Code_kommunal == "5640")
+        )
+        OR
+        (
+          (Typ_Kt == #E565_Flurweg_ohne_Erschliessungsfunktion)
+          AND
+          (Code_kommunal == "5650")
+        )
+        OR
+        (
+          (Typ_Kt == #E566_private_Erschliessungsstrasse)
+          AND
+          (Code_kommunal == "5660")
+        )
+        OR
+        (
+          (Typ_Kt == #E567_unklassierte_Strasse)
+          AND
+          (Code_kommunal == "5670")
+        )
+        OR
+        (
+          (Typ_Kt == #E568_Strassenbankett_Verkehrsinsel)
+          AND
+          (Code_kommunal == "5680")
+        )
+        OR
+        (
+          (Typ_Kt == #E569_uebrige_Verkehrsflaechen)
+          AND
+          ((Code_kommunal == "5691") OR (Code_kommunal == "5692") OR (Code_kommunal == "5693") OR (Code_kommunal == "5694") OR (Code_kommunal == "5695") OR (Code_kommunal == "5696") OR (Code_kommunal == "5697") OR (Code_kommunal == "5698") OR (Code_kommunal == "5699"))
+        )
+        OR
+        (
+          (Typ_Kt == #E570_Gehweg_Trottoir)
+          AND
+          (Code_kommunal == "5700")
+        )
+        OR
+        (
+          (Typ_Kt == #E571_Fussweg)
+          AND
+          (Code_kommunal == "5710")
+        )
+        OR
+        (
+          (Typ_Kt == #E572_Radweg)
+          AND
+          (Code_kommunal == "5720")
+        )
+        OR
+        (
+          (Typ_Kt == #E573_Fuss_und_Radweg)
+          AND
+          (Code_kommunal == "5730")
+        )
+        OR
+        (
+          (Typ_Kt == #E574_Gruenstreifen_Rabatte)
+          AND
+          (Code_kommunal == "5740")
+        )
+        OR
+        (
+          (Typ_Kt == #E579_uebrige_Flaechen_Langsamverkehr)
+          AND
+          ((Code_kommunal == "5791") OR (Code_kommunal == "5792") OR (Code_kommunal == "5793") OR (Code_kommunal == "5794") OR (Code_kommunal == "5795") OR (Code_kommunal == "5796") OR (Code_kommunal == "5797") OR (Code_kommunal == "5798") OR (Code_kommunal == "5799"))
+        );
+
+      !!@ ilivalid.msg = "Attributwert Bezeichnung ist nicht identisch zum Objektkatalog: '{Bezeichnung}' - '{Typ_Kt}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #E560_Nationalstrasse)
+          AND
+          (Bezeichnung == "Nationalstrasse")
+        )
+        OR
+        (
+          (Typ_Kt == #E561_Kantonsstrasse)
+          AND
+          (Bezeichnung == "Kantonsstrasse")
+        )
+        OR
+        (
+          (Typ_Kt == #E562_Sammelstrasse_kommunal)
+          AND
+          (Bezeichnung == "Sammelstrasse kommunal")
+        )
+        OR
+        (
+          (Typ_Kt == #E563_Erschliessungsstrasse_kommunal)
+          AND
+          (Bezeichnung == "Erschliessungsstrasse kommunal")
+        )
+        OR
+        (
+          (Typ_Kt == #E564_Flurweg_mit_Erschliessungsfunktion)
+          AND
+          (Bezeichnung == "Flurweg mit Erschliessungsfunktion")
+        )
+        OR
+        (
+          (Typ_Kt == #E565_Flurweg_ohne_Erschliessungsfunktion)
+          AND
+          (Bezeichnung == "Flurweg ohne Erschliessungsfunktion")
+        )
+        OR
+        (
+          (Typ_Kt == #E566_private_Erschliessungsstrasse)
+          AND
+          (Bezeichnung == "private Erschliessungsstrasse")
+        )
+        OR
+        (
+          (Typ_Kt == #E567_unklassierte_Strasse)
+          AND
+          (Bezeichnung == "unklassierte Strasse")
+        )
+        OR
+        (
+          (Typ_Kt == #E568_Strassenbankett_Verkehrsinsel)
+          AND
+          (Bezeichnung == "Strassenbankett, Verkehrsinsel")
+        )
+        OR
+        (
+          (Typ_Kt == #E569_uebrige_Verkehrsflaechen)
+        )
+        OR
+        (
+          (Typ_Kt == #E570_Gehweg_Trottoir)
+          AND
+          (Bezeichnung == "Gehweg, Trottoir")
+        )
+        OR
+        (
+          (Typ_Kt == #E571_Fussweg)
+          AND
+          (Bezeichnung == "Fussweg")
+        )
+        OR
+        (
+          (Typ_Kt == #E572_Radweg)
+          AND
+          (Bezeichnung == "Radweg")
+        )
+        OR
+        (
+          (Typ_Kt == #E573_Fuss_und_Radweg)
+          AND
+          (Bezeichnung == "Fuss- und Radweg")
+        )
+        OR
+        (
+          (Typ_Kt == #E574_Gruenstreifen_Rabatte)
+          AND
+          (Bezeichnung == "Grünstreifen, Rabatte")
+        )
+        OR
+        (
+          (Typ_Kt == #E579_uebrige_Flaechen_Langsamverkehr)
+        );
+
+      !!@ ilivalid.msg = "Attributwert Verbindlichkeit ist nicht korrekt - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Verbindlichkeit == #Nutzungsplanfestlegung)
+        OR
+          (Typ_Kt == #E569_uebrige_Verkehrsflaechen
+          AND
+          (Verbindlichkeit == #Nutzungsplanfestlegung OR Verbindlichkeit == #orientierend OR Verbindlichkeit == #wegleitend OR Verbindlichkeit == #hinweisend))
+        );
+    END v_Typ_Erschliessung_Flaechenobjekt;
+
+    VIEW v_Erschliessung_Linienobjekt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung.Erschliessung_Linienobjekt;
+    =
+      ALL OF Erschliessung_Linienobjekt;
+      !!@ name = checkMinimumLaenge
+      !!@ ilivalid.msg = "Länge der Geometrie ist kleiner 0.1 m."
+      MANDATORY CONSTRAINT SO_FunctionsExt.length(Geometrie) > 0.1;
+
+      !!@ name = tooFewPoints
+      !!@ ilivalid.msg = "Polyline hat zu wenig Punkte."
+      MANDATORY CONSTRAINT NOT ( SO_FunctionsExt.tooFewPointsPolyline(Geometrie) );
+
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+        (
+          (Rechtsstatus == #AenderungMitVorwirkung
+            OR
+          Rechtsstatus == #AenderungOhneVorwirkung)
+            AND
+          (DEFINED (Geschaefts_Nummer))
+          )
+           OR
+          (Rechtsstatus == #inKraft
+            AND
+          (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))));
+    END v_Erschliessung_Linienobjekt;
+
+    VIEW v_Typ_Erschliessung_Linienobjekt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung.Typ_Erschliessung_Linienobjekt;
+    =
+      ALL OF Typ_Erschliessung_Linienobjekt;
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+      (
+        (
+          (Typ_Kt == #E711_Baulinie_Strasse_kantonal)
+          AND
+          (Code_kommunal == "7110")
+        )
+        OR
+        (
+          (Typ_Kt == #E712_Vorbaulinie_kantonal)
+          AND
+          (Code_kommunal == "7120")
+        )
+        OR
+        (
+          (Typ_Kt == #E713_Gestaltungsbaulinie_kantonal)
+          AND
+          (Code_kommunal == "7130")
+        )
+        OR
+        (
+          (Typ_Kt == #E714_Rueckwaertige_Baulinie_kantonal)
+          AND
+          (Code_kommunal == "7140")
+        )
+        OR
+        (
+          (Typ_Kt == #E715_Baulinie_Infrastruktur_kantonal)
+          AND
+          (Code_kommunal == "7150")
+        )
+        OR
+        (
+          (Typ_Kt == #E719_weitere_nationale_und_kantonale_Baulinien)
+          AND
+          ((Code_kommunal == "7191") OR (Code_kommunal == "7192") OR (Code_kommunal == "7193") OR (Code_kommunal == "7194") OR (Code_kommunal == "7195") OR (Code_kommunal == "7196") OR (Code_kommunal == "7197") OR (Code_kommunal == "7198") OR (Code_kommunal == "7199"))
+        )
+        OR
+        (
+          (Typ_Kt == #E720_Baulinie_Strasse)
+          AND
+          (Code_kommunal == "7200")
+        )
+        OR
+        (
+          (Typ_Kt == #E721_Vorbaulinie)
+          AND
+          (Code_kommunal == "7210")
+        )
+        OR
+        (
+          (Typ_Kt == #E722_Gestaltungsbaulinie)
+          AND
+          (Code_kommunal == "7220")
+        )
+        OR
+        (
+          (Typ_Kt == #E723_Rueckwaertige_Baulinie)
+          AND
+          (Code_kommunal == "7230")
+        )
+        OR
+        (
+          (Typ_Kt == #E724_Baulinie_Infrastruktur)
+          AND
+          (Code_kommunal == "7240")
+        )
+        OR
+        (
+          (Typ_Kt == #E725_Waldabstandslinie)
+          AND
+          (Code_kommunal == "7250")
+        )
+        OR
+        (
+          (Typ_Kt == #E726_Baulinie_Hecke)
+          AND
+          (Code_kommunal == "7260")
+        )
+        OR
+        (
+          (Typ_Kt == #E727_Baulinie_Gewaesser)
+          AND
+          (Code_kommunal == "7270")
+        )
+        OR
+        (
+          (Typ_Kt == #E728_Immissionsstreifen)
+          AND
+          (Code_kommunal == "7280")
+        )
+        OR
+        (
+          (Typ_Kt == #E729_weitere_kommunale_Baulinien)
+          AND
+          ((Code_kommunal == "7291") OR (Code_kommunal == "7292") OR (Code_kommunal == "7293") OR (Code_kommunal == "7294") OR (Code_kommunal == "7295") OR (Code_kommunal == "7296") OR (Code_kommunal == "7297") OR (Code_kommunal == "7298") OR (Code_kommunal == "7299"))
+        )
+        OR
+        (
+          (Typ_Kt == #E789_weitere_linienbezogene_Objekte_EP)
+          AND
+          ((Code_kommunal == "7891") OR (Code_kommunal == "7892") OR (Code_kommunal == "7893") OR (Code_kommunal == "7894") OR (Code_kommunal == "7895") OR (Code_kommunal == "7896") OR (Code_kommunal == "7897") OR (Code_kommunal == "7898") OR (Code_kommunal == "7899"))
+        )
+      );
+
+      !!@ ilivalid.msg = "Attributwert Bezeichnung ist nicht identisch zum Objektkatalog: '{Bezeichnung}' - '{Typ_Kt}'"
+      MANDATORY CONSTRAINT
+      (
+        (
+          (Typ_Kt == #E711_Baulinie_Strasse_kantonal)
+          AND
+          (Bezeichnung == "Baulinie Strasse kantonal")
+        )
+        OR
+        (
+          (Typ_Kt == #E712_Vorbaulinie_kantonal)
+          AND
+          (Bezeichnung == "Vorbaulinie kantonal")
+        )
+        OR
+        (
+          (Typ_Kt == #E713_Gestaltungsbaulinie_kantonal)
+          AND
+          (Bezeichnung == "Gestaltungsbaulinie kantonal")
+        )
+        OR
+        (
+          (Typ_Kt == #E714_Rueckwaertige_Baulinie_kantonal)
+          AND
+          (Bezeichnung == "Rückwärtige Baulinie kantonal")
+        )
+        OR
+        (
+          (Typ_Kt == #E715_Baulinie_Infrastruktur_kantonal)
+          AND
+          (Bezeichnung == "Baulinie Infrastruktur kantonal")
+        )
+        OR
+        (
+          (Typ_Kt == #E719_weitere_nationale_und_kantonale_Baulinien)
+        )
+        OR
+        (
+          (Typ_Kt == #E720_Baulinie_Strasse)
+          AND
+          (Bezeichnung == "Baulinie Strasse")
+        )
+        OR
+        (
+          (Typ_Kt == #E721_Vorbaulinie)
+          AND
+          (Bezeichnung == "Vorbaulinie")
+        )
+        OR
+        (
+          (Typ_Kt == #E722_Gestaltungsbaulinie)
+          AND
+          (Bezeichnung == "Gestaltungsbaulinie")
+        )
+        OR
+        (
+          (Typ_Kt == #E723_Rueckwaertige_Baulinie)
+          AND
+          (Bezeichnung == "Rückwärtige Baulinie")
+        )
+        OR
+        (
+          (Typ_Kt == #E724_Baulinie_Infrastruktur)
+          AND
+          (Bezeichnung == "Baulinie Infrastruktur ")
+        )
+        OR
+        (
+          (Typ_Kt == #E725_Waldabstandslinie)
+          AND
+          (Bezeichnung == "Waldabstandslinie")
+        )
+        OR
+        (
+          (Typ_Kt == #E726_Baulinie_Hecke)
+          AND
+          (Bezeichnung == "Baulinie Hecke")
+        )
+        OR
+        (
+          (Typ_Kt == #E727_Baulinie_Gewaesser)
+          AND
+          (Bezeichnung == "Baulinie Gewässer")
+        )
+        OR
+        (
+          (Typ_Kt == #E728_Immissionsstreifen)
+          AND
+          (Bezeichnung == "Immissionsstreifen")
+        )
+        OR
+        (
+          (Typ_Kt == #E729_weitere_kommunale_Baulinien)
+        )
+        OR
+        (
+          (Typ_Kt == #E789_weitere_linienbezogene_Objekte_EP)
+        )
+      );
+
+      !!@ ilivalid.msg = "Attributwert Verbindlichkeit ist nicht korrekt- '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Verbindlichkeit == #Nutzungsplanfestlegung)
+        OR
+        (
+          Typ_Kt == #E789_weitere_linienbezogene_Objekte_EP
+          AND
+          (Verbindlichkeit == #Nutzungsplanfestlegung OR Verbindlichkeit == #orientierend OR Verbindlichkeit == #wegleitend OR Verbindlichkeit == #hinweisend))
+        );
+    END v_Typ_Erschliessung_Linienobjekt;
+
+   VIEW v_Erschliessung_Punktobjekt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung.Erschliessung_Punktobjekt;
+    =
+      ALL OF Erschliessung_Punktobjekt;
+      !!@ ilivalid.msg = "Geschäftsnummer fehlt bei Rechtsstatus=AenderungMitVorwirkung oder Rechtsstatus=AenderungOhneVorwirkung"
+      MANDATORY CONSTRAINT
+        (
+          (Rechtsstatus == #AenderungMitVorwirkung
+            OR
+          Rechtsstatus == #AenderungOhneVorwirkung)
+            AND
+          (DEFINED (Geschaefts_Nummer))
+          )
+           OR
+          (Rechtsstatus == #inKraft
+            AND
+          (NOT (DEFINED (Geschaefts_Nummer)) OR (DEFINED (Geschaefts_Nummer))));
+    END v_Erschliessung_Punktobjekt;
+
+   VIEW v_Typ_Erschliessung_Punktobjekt
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Erschliessungsplanung.Typ_Erschliessung_Punktobjekt;
+    =
+      ALL OF Typ_Erschliessung_Punktobjekt;
+      !!@ ilivalid.msg = "Kommunaler Code ist nicht im Wertebereich gemäss Objektkatalog: '{Typ_Kt}' - '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+        (
+          (Typ_Kt == #E889_weitere_punktbezogene_Objekte_EP)
+          AND
+          ((Code_kommunal == "8891") OR (Code_kommunal == "8892") OR (Code_kommunal == "8893") OR (Code_kommunal == "8894") OR (Code_kommunal == "8895") OR (Code_kommunal == "8896") OR (Code_kommunal == "8897") OR (Code_kommunal == "8898") OR (Code_kommunal == "8899"))
+        );
+    END v_Typ_Erschliessung_Punktobjekt;
+
+  END Erschliessungsplanung_Validierung;
+
+  VIEW TOPIC Laermempfindlichkeitsstufen_Validierung =
+  DEPENDS ON SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Laermempfindlichkeitsstufen;
+
+    VIEW v_Empfindlichkeitsstufe
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Laermempfindlichkeitsstufen.Empfindlichkeitsstufe;
+    =
+      ALL OF Empfindlichkeitsstufe;
+      !!@ name = checkMinimumFlaeche
+      !!@ ilivalid.msg = "Fläche der Geometrie ist kleiner 0.01 m2."
+      MANDATORY CONSTRAINT SO_FunctionsExt.area(Geometrie) > 0.01;
+
+      !!@ name = hasRingSelfIntersection
+      !!@ ilivalid.msg = "Geometrie enthält Ring-Self-Intersection."
+      MANDATORY CONSTRAINT NOT ( SO_FunctionsExt.hasRingSelfIntersection(Geometrie) );
+
+       !!@ name = EmpfindlichkeitsstufeAreaCheck
+      SET CONSTRAINT
+        WHERE
+            Rechtsstatus == #inKraft :
+        INTERLIS.areAreas(ALL, UNDEFINED, >> Geometrie);
+    END v_Empfindlichkeitsstufe;
+
+    VIEW v_Typ_Empfindlichkeitsstufe
+      PROJECTION OF SO_ARP_Nutzungsplanung_Nachfuehrung_20201005.Laermempfindlichkeitsstufen.Typ_Empfindlichkeitsstufe;
+    =
+      ALL OF Typ_Empfindlichkeitsstufe;
+          !!@ ilivalid.msg = "Attributwert Verbindlichkeit ist nicht Nutzungsplanfestlegung '{Code_kommunal}'"
+      MANDATORY CONSTRAINT
+          (Verbindlichkeit == #Nutzungsplanfestlegung);
+    END v_Typ_Empfindlichkeitsstufe;
+
+  END Laermempfindlichkeitsstufen_Validierung;
+
+END SO_ARP_Nutzungsplanung_Nachfuehrung_20201005_Validierung_20201005.
