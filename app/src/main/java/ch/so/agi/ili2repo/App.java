@@ -30,7 +30,7 @@ public class App implements Callable<Integer> {
         var failed = new ListModels().listModels(modelsDir);
         
         
-        System.out.println("Hallo Welt.");
+        System.out.println("Hallo Stefan.");
         return failed ? 1 : 0;
     }
     
