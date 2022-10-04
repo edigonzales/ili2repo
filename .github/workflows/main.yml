@@ -62,9 +62,10 @@ jobs:
     needs: [build-jvm, build-native]
     runs-on: ubuntu-latest
     steps:
-      run: |
-        pwd
-        ls -la
+      - uses: actions/checkout@v2
+        run: |
+          pwd
+          ls -la
 
 
       # - name: Build app with Gradle
