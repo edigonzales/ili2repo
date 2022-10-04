@@ -25,12 +25,9 @@ public class App implements Callable<Integer> {
     File modelsDir;
 
     @Override
-    public Integer call() throws Exception { // your business logic goes here...
-        
+    public Integer call() throws Exception { 
         var failed = new ListModels().listModels(modelsDir);
-        
-        
-        System.out.println("Hallo Stefan.");
+                
         return failed ? 1 : 0;
     }
     
