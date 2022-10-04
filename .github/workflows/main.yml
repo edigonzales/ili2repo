@@ -33,7 +33,6 @@ jobs:
           ls -la app/build/libs/
           ls -la app/build/distributions/
 
-
       - uses: actions/upload-artifact@v2
         if: ${{ failure() }}
         with:
@@ -58,6 +57,12 @@ jobs:
         run: |
           ./gradlew nativeTest
           ./gradlew nativeCompile
+
+      - uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: reports-native
+          path: app/build/reports/tests/
 
   fubar:
     needs: [build-jvm, build-native]
