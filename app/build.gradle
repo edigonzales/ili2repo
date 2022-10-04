@@ -12,9 +12,15 @@ compileJava {
     options.compilerArgs.addAll(['--release', '17'])
 }
 
+def myArtifactId = "ili2repo"
+
 repositories {
     mavenCentral()
     maven { url "https://jars.interlis.ch" }
+}
+
+configurations {
+    jar.archiveName = myArtifactId+"-"+version+".jar"
 }
 
 dependencies {
@@ -32,8 +38,20 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.15'      
 }
 
+distZip {
+    archiveName myArtifactId + '-'  + project.version.toString() + '.zip'
+}
+
+distTar {
+    archiveName myArtifactId + '-'  + project.version.toString() + '.tar'
+}
+
 application {
     mainClass = 'ch.so.agi.ili2repo.App'
+}
+
+startScripts {
+   applicationName = myArtifactId
 }
 
 tasks.named('test') {

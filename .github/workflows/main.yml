@@ -28,13 +28,43 @@ jobs:
           java-version: '17'
           
       - name: Build app with Gradle
-        run: ./gradlew clean app:build 
+        run: |
+          ./gradlew clean app:build
+          ls -la app/build/libs/
+          ls -la app/build/distributions/
+
 
       - uses: actions/upload-artifact@v2
         if: ${{ failure() }}
         with:
           name: reports-jvm
           path: app/build/reports/tests/
+
+  build-native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.2.0'
+          java-version: '17'
+          components: 'native-image'
+          native-image-musl: 'true'
+          #github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build native image
+        run: |
+          ./gradlew nativeTest
+          ./gradlew nativeCompile
+
+  fubar:
+    needs: [build-jvm, build-native]
+    runs-on: ubuntu-latest
+    run: |
+      pwd
+      ls -la
+
 
       # - name: Build app with Gradle
       #   run: ./gradlew clean app:build -i
