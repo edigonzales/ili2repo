@@ -51,6 +51,7 @@ jobs:
           java-version: '17'
           components: 'native-image'
           #native-image-musl: 'true'
+          cache: 'gradle'
           #github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build native image
