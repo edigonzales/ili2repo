@@ -61,9 +61,10 @@ jobs:
   fubar:
     needs: [build-jvm, build-native]
     runs-on: ubuntu-latest
-    run: |
-      pwd
-      ls -la
+    steps:
+      run: |
+        pwd
+        ls -la
 
 
       # - name: Build app with Gradle
