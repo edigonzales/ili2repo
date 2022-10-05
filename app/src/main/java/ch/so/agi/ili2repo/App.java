@@ -27,7 +27,7 @@ public class App implements Callable<Integer> {
     @Override
     public Integer call() throws Exception { 
         var failed = new ListModels().listModels(modelsDir);
-                
+
         return failed ? 1 : 0;
     }
     

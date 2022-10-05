@@ -13,6 +13,7 @@ compileJava {
 }
 
 def myArtifactId = "ili2repo"
+def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem; 
 
 repositories {
     mavenCentral()
@@ -39,11 +40,13 @@ dependencies {
 }
 
 distZip {
-    archiveName myArtifactId + '-'  + project.version.toString() + '.zip'
+    archiveBaseName = myArtifactId
 }
 
 distTar {
-    archiveName myArtifactId + '-'  + project.version.toString() + '.tar'
+    compression = Compression.GZIP
+    archiveExtension = "tar.gz"
+    archiveBaseName = myArtifactId
 }
 
 application {
@@ -81,4 +84,38 @@ graalvmNative {
             */
         }
     }
+}
+
+distributions {
+    nativeImage {
+        //distributionBaseName = 'someName' + '-' + getOperatingSystemName() + '-' + "fu"
+        contents {
+            from 'build/native/nativeCompile/'
+        }
+    }
+}
+
+nativeImageDistZip {
+    archiveName myArtifactId + '-' + project.version.toString() + '-' + getOperatingSystemName() + '-' + getArchitectureName() + ".zip"
+}
+
+def getOperatingSystemName() {
+    def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem; 
+    def osName = os.getName().toLowerCase();
+    if (osName.contains("windows")) {
+        return "windows";
+    } else if (osName.contains("mac os x") || osName.contains("darwin") || osName.contains("osx")) {
+        return "osx";
+    } else if (osName.contains("linux")) {
+        return "linux";
+    } else {
+        // not strictly true
+        return "unix";
+    }
+}
+
+def getArchitectureName() {
+    def arch = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentArchitecture; 
+    def archName = arch.getName().toLowerCase();
+    return archName;    
 }
