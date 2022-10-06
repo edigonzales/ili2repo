@@ -28,6 +28,7 @@ jobs:
           java-version: '17'
           
       - name: Build app with Gradle
+        id: buildJvm
         run: |
           ./gradlew clean app:build
           ls -la app/build/libs/
@@ -38,6 +39,14 @@ jobs:
         with:
           name: reports-jvm
           path: app/build/reports/tests/
+
+      - name: 'Upload build artifact'
+        if: always() && (steps.buildJvm.outcom == 'success')
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts-jvm
+          path: |
+            app/build/libs/*.zip
 
   build-native:
     runs-on: ubuntu-latest
