@@ -46,7 +46,7 @@ jobs:
         with:
           name: artifacts-jvm
           path: |
-            app/build/libs/*.zip
+            app/build/distributions/*.zip
 
   build-native:
     runs-on: ubuntu-latest
