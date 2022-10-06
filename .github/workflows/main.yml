@@ -48,30 +48,30 @@ jobs:
           path: |
             app/build/distributions/*.zip
 
-  build-native:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  # build-native:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          version: '22.2.0'
-          java-version: '17'
-          components: 'native-image'
-          #native-image-musl: 'true'
-          cache: 'gradle'
-          #github-token: ${{ secrets.GITHUB_TOKEN }}
+  #     - uses: graalvm/setup-graalvm@v1
+  #       with:
+  #         version: '22.2.0'
+  #         java-version: '17'
+  #         components: 'native-image'
+  #         #native-image-musl: 'true'
+  #         cache: 'gradle'
+  #         #github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build native image
-        run: |
-          ./gradlew nativeTest
-          ./gradlew nativeCompile
+  #     - name: Build native image
+  #       run: |
+  #         ./gradlew nativeTest
+  #         ./gradlew nativeCompile
 
-      - uses: actions/upload-artifact@v2
-        if: ${{ failure() }}
-        with:
-          name: reports-native
-          path: app/build/reports/tests/
+  #     - uses: actions/upload-artifact@v2
+  #       if: ${{ failure() }}
+  #       with:
+  #         name: reports-native
+  #         path: app/build/reports/tests/
 
   fubar:
     needs: [build-jvm, build-native]
