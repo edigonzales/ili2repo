@@ -41,7 +41,7 @@ jobs:
           path: app/build/reports/tests/
 
       - name: 'Upload build artifact'
-        if: always() && (steps.buildJvm.outcom == 'success')
+        if: always() && (steps.buildJvm.outcome == 'success')
         uses: actions/upload-artifact@v2
         with:
           name: artifacts-jvm
