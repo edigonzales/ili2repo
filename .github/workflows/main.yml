@@ -74,7 +74,8 @@ jobs:
   #         path: app/build/reports/tests/
 
   fubar:
-    needs: [build-jvm, build-native]
+    #needs: [build-jvm, build-native]
+    needs: [build-jvm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
