@@ -95,6 +95,10 @@ jobs:
         run: |
           ls -la /home/runner/work/ili2repo/ili2repo/artifacts-jvm
 
+      - name: 'List artifacts'
+        run: |
+          ls -la /home/runner/work/ili2repo/ili2repo/artifacts-jvm
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
