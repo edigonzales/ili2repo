@@ -92,8 +92,6 @@ jobs:
 
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
-        run: |
-          ls -la /home/runner/work/ili2repo/ili2repo/artifacts-jvm
 
       - name: 'List artifacts'
         run: |
