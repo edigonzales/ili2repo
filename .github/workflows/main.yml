@@ -48,34 +48,43 @@ jobs:
           path: |
             app/build/distributions/*.zip
 
-  # build-native:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
+  build-native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-  #     - uses: graalvm/setup-graalvm@v1
-  #       with:
-  #         version: '22.2.0'
-  #         java-version: '17'
-  #         components: 'native-image'
-  #         #native-image-musl: 'true'
-  #         cache: 'gradle'
-  #         #github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.2.0'
+          java-version: '17'
+          components: 'native-image'
+          #native-image-musl: 'true'
+          cache: 'gradle'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Build native image
-  #       run: |
-  #         ./gradlew nativeTest
-  #         ./gradlew nativeCompile
+#          ./gradlew nativeTest
+      - name: Build native image
+        id: buildNative
+        run: |
+          ./gradlew nativeCompile app:nativeImageDistZip
 
-  #     - uses: actions/upload-artifact@v2
-  #       if: ${{ failure() }}
-  #       with:
-  #         name: reports-native
-  #         path: app/build/reports/tests/
+      - uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: reports-native
+          path: app/build/reports/tests/
+
+      - name: 'Upload build artifact'
+        if: always() && (steps.buildNative.outcome == 'success')
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts-native
+          path: |
+            app/build/distributions/*.zip
 
   fubar:
-    #needs: [build-jvm, build-native]
-    needs: [build-jvm]
+    needs: [build-jvm, build-native]
+    #needs: [build-jvm]
     runs-on: ubuntu-latest
     steps:
       # - uses: actions/checkout@v2
@@ -96,6 +105,7 @@ jobs:
       - name: 'List artifacts'
         run: |
           ls -la /home/runner/work/ili2repo/ili2repo/artifacts-jvm
+          ls -la /home/runner/work/ili2repo/ili2repo/artifacts-native
           ls -la /home/runner/work/ili2repo/ili2repo/
 
       - name: Set up JDK 17
@@ -113,12 +123,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Release distributions
-        run: |
-          ./gradlew -i app:jreleaserRelease
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ success() && github.ref == 'refs/heads/main'}}
+      # - name: Release distributions
+      #   run: |
+      #     ./gradlew -i app:jreleaserRelease
+      #   env:
+      #     JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   if: ${{ success() && github.ref == 'refs/heads/main'}}
 
 
       # - name: Build app with Gradle

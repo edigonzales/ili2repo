@@ -40,22 +40,8 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.15'      
 }
 
-distZip {
-    archiveBaseName = myArtifactId
-}
-
-distTar {
-    compression = Compression.GZIP
-    archiveExtension = "tar.gz"
-    archiveBaseName = myArtifactId
-}
-
 application {
     mainClass = 'ch.so.agi.ili2repo.App'
-}
-
-startScripts {
-   applicationName = myArtifactId
 }
 
 tasks.named('test') {
@@ -85,6 +71,20 @@ graalvmNative {
             */
         }
     }
+}
+
+startScripts {
+   applicationName = myArtifactId
+}
+
+distZip {
+    archiveBaseName = myArtifactId
+}
+
+distTar {
+    compression = Compression.GZIP
+    archiveExtension = "tar.gz"
+    archiveBaseName = myArtifactId
 }
 
 distributions {
