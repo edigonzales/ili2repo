@@ -124,7 +124,6 @@ jreleaser {
             distributionType = 'JAVA_BINARY'
             stereotype = 'CLI'
             artifact {
-                //path = "build/distributions/ili2repo-${version}.zip"
                 path = "../artifacts-jvm/ili2repo-${version}.zip"
             }
             java {
@@ -137,9 +136,18 @@ jreleaser {
             distributionType = 'NATIVE_IMAGE'
             stereotype = 'CLI'
             artifact {
-                //path = "build/distributions/ili2repo-${version}.zip"
                 path = "../artifacts-native/ili2repo-${version}-linux-x86-64.zip"
+                platform = 'linux'
             }
+            artifact {
+                path = "../artifacts-native/ili2repo-${version}-osx-x86-64.zip"
+                platform = 'osx'
+            }
+            artifact {
+                path = "../artifacts-native/ili2repo-${version}-windows-x86-64.zip"
+                platform = 'windows'
+            }
+
             /*
             java {
                 groupId = 'ch.so.agi'
