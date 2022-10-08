@@ -9,7 +9,7 @@ import picocli.CommandLine.Option;
 
 @Command(
         name = "ili2repo",
-        description = "Creates an ilimodel.xml file from a directory with INTERLIS models.",
+        description = "Creates an ilimodels.xml file from a directory with INTERLIS model files.",
         //version = "ili2repo version 0.0.1",
         mixinStandardHelpOptions = true,
         

@@ -1,6 +1,7 @@
 plugins {
     id 'application'
     id 'org.graalvm.buildtools.native' version '0.9.14'
+    id 'org.jreleaser' version '1.0.0'
 }
 
 apply from: "$rootDir/gradle/versioning.gradle"
@@ -97,6 +98,40 @@ distributions {
 
 nativeImageDistZip {
     archiveName myArtifactId + '-' + project.version.toString() + '-' + getOperatingSystemName() + '-' + getArchitectureName() + ".zip"
+}
+
+jreleaser {
+    gitRootSearch = true
+    
+    project {
+        name = myArtifactId
+        description = 'Creates an ilimodels.xml file from a directory with INTERLIS model files.'
+        website = 'https://agi.so.ch'
+        authors = ['edigonzales']
+        license = 'MIT'
+        docsUrl = 'https://github.com/edigonzales/ili2repo'
+    }
+    release {
+        github {
+            owner = 'sogis'
+            overwrite = true
+            apiEndpoint = 'https://api.github.com'
+        }
+    }
+    distributions {
+        appJvm {
+            distributionType = 'JAVA_BINARY'
+            artifact {
+                //path = "build/distributions/ili2repo-${version}.zip"
+                path = "artifacts-jvm/ili2repo-${version}.zip"
+            }
+            java {
+                groupId = 'ch.so.agi'
+                artifactId = myArtifactId
+                version = '17'
+            }
+        }
+    }
 }
 
 def getOperatingSystemName() {
