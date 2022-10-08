@@ -123,12 +123,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # - name: Release distributions
-      #   run: |
-      #     ./gradlew -i app:jreleaserRelease
-      #   env:
-      #     JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   if: ${{ success() && github.ref == 'refs/heads/main'}}
+      - name: Release distributions
+        run: |
+          ./gradlew -i app:jreleaserRelease
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ success() && github.ref == 'refs/heads/main'}}
 
 
       # - name: Build app with Gradle
