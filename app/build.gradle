@@ -110,6 +110,7 @@ jreleaser {
         authors = ['edigonzales']
         license = 'MIT'
         docsUrl = 'https://github.com/edigonzales/ili2repo'
+        copyright = '2022 Stefan Ziegler'
     }
     release {
         github {
@@ -123,7 +124,7 @@ jreleaser {
             distributionType = 'JAVA_BINARY'
             artifact {
                 //path = "build/distributions/ili2repo-${version}.zip"
-                path = "artifacts-jvm/ili2repo-${version}.zip"
+                path = "../artifacts-jvm/ili2repo-${version}.zip"
             }
             java {
                 groupId = 'ch.so.agi'
