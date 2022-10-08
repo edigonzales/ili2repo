@@ -49,16 +49,25 @@ jobs:
             app/build/distributions/*.zip
 
   build-native:
-    runs-on: ubuntu-latest
+    name: 'Build with Graal on ${{ matrix.os }}'
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v2
+
+      - name: 'Add Developer Command Prompt for Microsoft Visual C++ '
+        if: ${{ runner.os == 'Windows' }}
+        uses: ilammy/msvc-dev-cmd@v1
 
       - uses: graalvm/setup-graalvm@v1
         with:
           version: '22.2.0'
           java-version: '17'
           components: 'native-image'
-          #native-image-musl: 'true'
           cache: 'gradle'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -123,12 +132,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Release distributions
-        run: |
-          ./gradlew -i app:jreleaserRelease
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ success() && github.ref == 'refs/heads/main'}}
+      # - name: Release distributions
+      #   run: |
+      #     ./gradlew -i app:jreleaserRelease
+      #   env:
+      #     JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   if: ${{ success() && github.ref == 'refs/heads/main'}}
 
 
       # - name: Build app with Gradle
