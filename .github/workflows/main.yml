@@ -131,3 +131,10 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Release distributions
+        run: |
+          ./gradlew -i app:jreleaserRelease
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ success() && github.ref == 'refs/heads/main'}}
