@@ -82,7 +82,7 @@ jobs:
           path: |
             app/build/distributions/*.zip
 
-  fubar:
+  release:
     needs: [build-jvm, build-native]
     #needs: [build-jvm]
     runs-on: ubuntu-latest
