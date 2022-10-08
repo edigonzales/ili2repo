@@ -75,6 +75,7 @@ jobs:
       - name: Build native image
         id: buildNative
         run: |
+          ./gradlew nativeTest
           ./gradlew nativeCompile app:nativeImageDistZip
 
       - uses: actions/upload-artifact@v2

@@ -89,7 +89,6 @@ distTar {
 
 distributions {
     nativeImage {
-        //distributionBaseName = 'someName' + '-' + getOperatingSystemName() + '-' + "fu"
         contents {
             from 'build/native/nativeCompile/'
         }
@@ -147,14 +146,6 @@ jreleaser {
                 path = "../artifacts-native/ili2repo-${version}-windows-x86-64.zip"
                 platform = 'windows'
             }
-
-            /*
-            java {
-                groupId = 'ch.so.agi'
-                artifactId = myArtifactId
-                version = '17'
-            }
-            */
         }
     }
 }
