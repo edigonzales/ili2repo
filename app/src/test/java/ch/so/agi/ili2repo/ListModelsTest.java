@@ -24,6 +24,7 @@ public class ListModelsTest {
         assertTrue(xmlContent.contains("<Name>SO_ARP_Nutzungsplanung_Nachfuehrung_20201005_Validierung_20201005</Name>"));
         assertTrue(xmlContent.contains("<Name>SO_ARP_Nutzungsplanung_Nachfuehrung_20201005</Name>"));
         assertTrue(xmlContent.contains("<Name>SO_FunctionsExt</Name>"));
+        assertTrue(xmlContent.contains("<File>dm01avso24lv95.ili</File>"));
         
         // TODO: org.xmlunit wäre zum Vergleich gut. Wie gut ist GraalVM native Unterstützung?
     }

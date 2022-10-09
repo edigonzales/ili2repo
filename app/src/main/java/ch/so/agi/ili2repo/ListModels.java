@@ -114,8 +114,22 @@ public class ListModels {
                         iomObj.setattrvalue("SchemaLanguage", "ili2_4");
                     }
                     
-                    String filePath = file.getAbsoluteFile().getParent().replace(modelsDir.getAbsolutePath()+FileSystems.getDefault().getSeparator(), "");
-                    iomObj.setattrvalue("File", filePath + "/" + file.getName());
+                    String filePath = file.getAbsoluteFile().getParent().replace(modelsDir.getAbsolutePath(), "");
+
+                    if (filePath.startsWith(FileSystems.getDefault().getSeparator())) {
+                        filePath = filePath.substring(1);
+                    }
+                    
+                    // Falls das Modell im models-Root-Verzeichnis liegt, darf
+                    // kein Separator hinzugefügt werden.
+                    String iomFileString;
+                    if (filePath.length() == 0) {
+                        iomFileString = file.getName();
+                    } else  {
+                        iomFileString = filePath + "/" + file.getName();
+                    }
+                    
+                    iomObj.setattrvalue("File", iomFileString);
 
                     if (lastModel.getModelVersion() == null) {
                         iomObj.setattrvalue("Version", "1582-01-01");
