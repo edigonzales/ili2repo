@@ -61,14 +61,22 @@ graalvmNative {
             debug = false 
             verbose = true 
             fallback = false 
+            configurationFileDirectories.from(file('src/main/resources/META-INF/native-image/')) 
             // Advanced options
-            buildArgs.add('--enable-url-protocols=http') 
+            buildArgs.add('--enable-url-protocols=http,https') 
+            buildArgs.add('-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages');
             //jvmArgs.add("-Djava.awt.headless=false")
             /*
             agent {
                 enabled = true 
             }
             */
+        }
+        test {
+            verbose = true
+            fallback = false 
+            buildArgs.add('--enable-url-protocols=http,https') 
+            buildArgs.add('-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages');
         }
     }
 }
