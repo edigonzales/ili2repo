@@ -58,11 +58,11 @@ graalvmNative {
         main {
             imageName = 'ili2repo'
             mainClass = 'ch.so.agi.ili2repo.App' 
-            debug = true 
+            debug = false 
             verbose = true 
             fallback = false 
             // Advanced options
-            //buildArgs.add('-H:Extra') 
+            buildArgs.add('--enable-url-protocols=http') 
             //jvmArgs.add("-Djava.awt.headless=false")
             /*
             agent {
