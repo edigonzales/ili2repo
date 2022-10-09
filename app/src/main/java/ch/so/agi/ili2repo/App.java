@@ -42,6 +42,7 @@ public class App implements Callable<Integer> {
         if (server) {
             new Httpd(modelsDir.getAbsolutePath()).start();
             
+            // see https://community.oracle.com/tech/developers/discussion/1541952/java-application-not-terminating-immediatly-after-ctrl-c
             final Console console = System.console();
             String line;
             do {
