@@ -1,8 +1,10 @@
 package ch.so.agi.ili2repo;
 
+import java.io.Console;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+import ch.so.agi.ili2repo.httpd.Httpd;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -23,12 +25,33 @@ public class App implements Callable<Integer> {
 
     @Option(names = { "-d", "--directory" }, required = true, paramLabel = "MODELDIR", description = "The directory containing the INTERLIS models.")
     File modelsDir;
-
+    
+    @Option(names = { "-s", "--server" }, required = false, description = "Runs HTTPS server to serve out the models repository.") 
+    boolean server;
+    
     @Override
-    public Integer call() throws Exception { 
-        var failed = new ListModels().listModels(modelsDir);
+    public Integer call() throws Exception {
+        
+        // TODO: if/else logic
+        
+        if (!server) {
+            var failed = new ListModels().listModels(modelsDir);
+            return failed ? 1 : 0;
+        }
 
-        return failed ? 1 : 0;
+        if (server) {
+            new Httpd(modelsDir.getAbsolutePath()).start();
+            
+            // see https://community.oracle.com/tech/developers/discussion/1541952/java-application-not-terminating-immediatly-after-ctrl-c
+            final Console console = System.console();
+            String line;
+            do {
+                System.out.println("Ctrl-C to stop server...");
+                line = console.readLine();
+            } while (line == null);
+        }
+        
+        return 0;
     }
     
     public static void main(String... args) {

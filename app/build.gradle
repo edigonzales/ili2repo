@@ -50,7 +50,8 @@ tasks.named('test') {
 
 run {
     //args = ["--help"]
-    args = ["--directory=/Users/stefan/tmp/ili2repo/models/"]
+    //args = ["--directory=/Users/stefan/tmp/ili2repo/models/"]
+    args = ["--server", "--directory=/Users/stefan/tmp/ili2repo/models/"]
 }
 
 graalvmNative {
@@ -62,9 +63,15 @@ graalvmNative {
             verbose = true 
             fallback = false 
             //configurationFileDirectories.from(file('src/main/resources/META-INF/native-image/')) 
-            // Advanced options
+
             buildArgs.add('--enable-url-protocols=http,https') 
             buildArgs.add('-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages');
+            
+            // https://github.com/oracle/graal/issues/4671 
+            // Should be fixed in 22.3
+            buildArgs.add("-J--add-modules")
+            buildArgs.add("-JALL-SYSTEM")
+            
             //jvmArgs.add("-Djava.awt.headless=false")
             /*
             agent {
