@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+  <HEADERSECTION SENDER="SOGIS-20160127" VERSION="2.3">
+    <MODELS>
+      <MODEL NAME="IliSite09" VERSION="2009-11-12" URI="mailto:ce@eisenhutinformatik.ch"/>
+    </MODELS>
+  </HEADERSECTION>
+  <DATASECTION>
+    <IliSite09.SiteMetadata BID="b1">
+      <IliSite09.SiteMetadata.Site TID="1">
+        <Name>localhost</Name>
+        <Title>INTERLIS repo at localhost</Title>
+        <shortDescription>INTERLIS-Modellablage zum Testen des erstellten ilimodels.xml</shortDescription>
+        <Owner>http://localhost</Owner>
+        <technicalContact>http://localhost</technicalContact>
+        <furtherInformation>http://localhost</furtherInformation>
+        <parentSite>
+          <IliSite09.RepositoryLocation_>
+            <value>https://models.kgk-cgc.ch/</value>
+          </IliSite09.RepositoryLocation_>
+          <IliSite09.RepositoryLocation_>
+            <value>https://models.geo.admin.ch/</value>
+          </IliSite09.RepositoryLocation_>
+        </parentSite>
+      </IliSite09.SiteMetadata.Site>
+    </IliSite09.SiteMetadata>
+  </DATASECTION>
+</TRANSFER>

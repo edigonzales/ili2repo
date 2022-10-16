@@ -2,6 +2,10 @@ package ch.so.agi.ili2repo;
 
 import java.io.Console;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.Callable;
 
 import ch.so.agi.ili2repo.httpd.Httpd;
@@ -29,16 +33,27 @@ public class App implements Callable<Integer> {
     @Option(names = { "-s", "--server" }, required = false, description = "Runs HTTPS server to serve out the models repository.") 
     boolean server;
     
+    @Option(names = { "-i", "--init" }, required = false, description = "Creates an ilisite.xml file and copies it to the MODELDIR.") 
+    boolean initSiteXml;
+
+    
     @Override
     public Integer call() throws Exception {
         
-        // TODO: if/else logic
+        // TODO: if/else logic ??
         
-        if (!server) {
-            var failed = new ListModels().listModels(modelsDir);
-            return failed ? 1 : 0;
+        if (initSiteXml) {
+            InputStream is = this.getClass().getClassLoader().getResourceAsStream("ilisite.xml");
+            File file = Paths.get(modelsDir.getAbsolutePath(), new File("ilisite.xml").getName()).toFile();
+            Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
 
+        var failed = false;
+        if (!server) {
+            failed = new ListModels().listModels(modelsDir);
+            if (failed) return 1; 
+        }
+        
         if (server) {
             new Httpd(modelsDir.getAbsolutePath()).start();
             
@@ -51,7 +66,7 @@ public class App implements Callable<Integer> {
             } while (line == null);
         }
         
-        return 0;
+        return failed ? 1 : 0;
     }
     
     public static void main(String... args) {

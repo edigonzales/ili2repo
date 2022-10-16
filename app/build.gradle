@@ -51,7 +51,7 @@ tasks.named('test') {
 run {
     //args = ["--help"]
     //args = ["--directory=/Users/stefan/tmp/ili2repo/models/"]
-    args = ["--server", "--directory=/Users/stefan/tmp/ili2repo/models/"]
+    args = ["--server", "--directory=/Users/stefan/tmp/ili2repo/models/", "--init"]
 }
 
 graalvmNative {
@@ -62,7 +62,7 @@ graalvmNative {
             debug = false 
             verbose = true 
             fallback = false 
-            //configurationFileDirectories.from(file('src/main/resources/META-INF/native-image/')) 
+            configurationFileDirectories.from(file('src/main/resources/META-INF/native-image/')) 
 
             buildArgs.add('--enable-url-protocols=http,https') 
             buildArgs.add('-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages');
