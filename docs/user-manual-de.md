@@ -32,7 +32,7 @@ Die Native Binaries sind für das jeweilige Betriebssystem kompilierte Versionen
 
 Im Gegensatz zu der Java-Variante erscheinen beim ersten Aufruf auf macOS und Windows Warnungen wegen fehlender Signierung des Binaries resp. wegen des unbekannten Entwicklers der Software. Man muss dem Betriebssystem das Ausführen des Programms explizit erlauben. Unter macOS erscheint 
 
-![](./macos_security_01.png | width=100)
+![](./macos_security_01.png)
 
 
 
