@@ -8,7 +8,7 @@ Es stehen zwei Varianten zum [Download](https://github.com/edigonzales/ili2repo/
 
 ### JVM/Java-Variante
 
-Diese Variante (`ili2repo-<Version>.zip`) benötigt eine installierte Java Runtime 17 oder höher, ist jedoch Betriebssystem unabhängig. Die Zip-Datei muss entpackt werden. Im Verzeichnis sind zwei Unterverzeichnisse _lib_ und _bin_. Im _lib_-Verzeichnis sind sämtliche benötigten Java-Bibliotheken. Im _bin_-Verzeichnis ist eine Shellskript-Datei resp. eine Batch-Datei. Diese dienen zur Auführung des Programmes.
+Diese Variante (`ili2repo-<Version>.zip`) benötigt eine installierte Java Runtime 17 oder höher, ist jedoch betriebssystemunabhängig. Die Zip-Datei muss entpackt werden. Im Verzeichnis sind zwei Unterverzeichnisse _lib_ und _bin_. Im _lib_-Verzeichnis sind sämtliche benötigten Java-Bibliotheken. Im _bin_-Verzeichnis ist eine Shellskript-Datei resp. eine Batch-Datei. Diese dienen zur Auführung des Programmes.
 
 Linux/macOS:
 
