@@ -4,7 +4,7 @@ A command line tool that creates an ilimodels.xml file from a directory with INT
 
 ## Manual
 
-A german user manual can be found here [docs/user/](docs/user/user-manual-de.md) 
+A german user manual can be found here [docs/user-manual-de.md](docs/user/user-manual-de.md) 
 
 ## Licencse
 
