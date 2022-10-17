@@ -38,7 +38,7 @@ In den "Einstellungen" - "Security & Privacy" - "General" muss man mit "Allow An
 
 ![](./macos_security_02.png)
 
-Wenn man den obigen Befehl nochmals ausführt, erscheint wieder ein Meldung:
+Wenn man den obigen Befehl nochmals ausführt, erscheint wieder eine Meldung:
 
 ![](./macos_security_03.png)
 
@@ -69,10 +69,10 @@ Es werden folgende Metaattribute innerhalb des Datenmodells berücksichtigt und 
 
 Mit der Option `--init` wird im gleichen Verzeichnis eine _ilisite.xml_-Datei erstellt.
 
-Im obersten Verzeichnis (Rootverzeichnis) sollten keine Datenmodele platziert werden, sondern nur in Unterverzeichnissen. Da _ilimodels.xml_ selber ein INTERLIS-Datenmodell ist und zum einem bestimmten Zeitpunkt noch nicht fertig ist, entsteht ein Durcheinander.
+Im obersten Verzeichnis (Rootverzeichnis) sollten keine Datenmodelle platziert werden, sondern nur in Unterverzeichnissen. Da _ilimodels.xml_ selber ein INTERLIS-Datenmodell ist und zum einem bestimmten Zeitpunkt noch nicht fertig ist, entsteht ein Durcheinander.
 
-Es werden sämtliche Unterverzeichnisse berücksichtigt, so auch _replaced_- oder _obsolete_-Ordner. Bei einem mehr oder weniger offiziellen Konsens werde ich das ändern.
+Es werden sämtliche Unterverzeichnisse berücksichtigt, so auch _replaced_- oder _obsolete_-Ordner. Bei einem mehr oder weniger offiziellen Konsens was wie behandelt werden soll, werde ich das ändern.
 
 ### Server-Modus
 
-Der Servermodus `--server` dient zum Testen der vorgängig erzeugten _ilimodels.xml_-Datei. Es wird dazu ein ganz simpler HTTP-Server gestartet. Die INTERLIS-Modellablage ist unter der Url `http://localhost:8820` verfügbar. Der Servermodus benötigt ebenfalls die Option `--directory`, damit er weiss welches Verzeichnis bereitgestellt werden soll, es wird aber keine _ilimodels.xml_-Datei erstellt.
+Der Servermodus `--server` dient zum Testen der vorgängig erzeugten _ilimodels.xml_-Datei. Es wird dazu ein ganz simpler HTTP-Server gestartet. Die INTERLIS-Modellablage ist unter der Url `http://localhost:8820` verfügbar. Der Servermodus benötigt ebenfalls die Option `--directory`, damit _ili2repo_ weiss welches Verzeichnis bereitgestellt werden soll. Es wird aber keine _ilimodels.xml_-Datei erstellt.
